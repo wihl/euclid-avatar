@@ -1,0 +1,1186 @@
+{
+  "model_config": {
+    "stt_model": "mlx-community/whisper-large-v3-turbo",
+    "stt_warmup_ms": 340.0,
+    "gemini_model": "gemini-3.1-flash-lite",
+    "tts_backend": "google_erasmian",
+    "tts_voice": "en-US-Neural2-D",
+    "tts_rate": 0.78
+  },
+  "index_stats": {
+    "db_path": "/Users/wihl/Projects/agy/euclid-avatar/.cache/course_index.sqlite",
+    "updated_files": 0,
+    "total_files": 129,
+    "total_chunks": 1874,
+    "distinct_entity_keys": 211,
+    "elapsed_ms": 10.9
+  },
+  "aggregate_stats": {
+    "stt_ms": {
+      "min": 109.3,
+      "median": 138.6,
+      "mean": 138.1,
+      "p90": 153.3,
+      "max": 166.0
+    },
+    "rag_ms": {
+      "min": 2.6,
+      "median": 6.8,
+      "mean": 6.3,
+      "p90": 8.5,
+      "max": 8.7
+    },
+    "llm_ms": {
+      "min": 1628.4,
+      "median": 2108.9,
+      "mean": 2785.0,
+      "p90": 4010.5,
+      "max": 4808.0
+    },
+    "tts_first_sentence_ms": {
+      "min": 424.6,
+      "median": 572.4,
+      "mean": 598.2,
+      "p90": 763.5,
+      "max": 830.7
+    },
+    "tts_total_ms": {
+      "min": 980.5,
+      "median": 1209.2,
+      "mean": 1265.0,
+      "p90": 1413.8,
+      "max": 1815.7
+    },
+    "total_unattended_ms": {
+      "min": 2203.1,
+      "median": 2971.4,
+      "mean": 3527.6,
+      "p90": 4979.9,
+      "max": 5532.4
+    },
+    "post_approval_start_ms": {
+      "min": 0.0,
+      "median": 0.1,
+      "mean": 0.1,
+      "p90": 0.1,
+      "max": 0.1
+    }
+  },
+  "turns": [
+    {
+      "q_num": 1,
+      "qid": "q01_prop_i23_enunciation",
+      "expected_question": "Euclid, please state the enunciation of Book I, Proposition 23 in Greek and English.",
+      "transcript": "Euclid. Please state the enunciation of Book I, Proposition 23 in Greek and English.",
+      "sources": [
+        "Elements I.23"
+      ],
+      "retrieved_details": [
+        {
+          "source_label": "Elements I.23",
+          "rel_path": "materials/books/Elements.pdf",
+          "title": "Elements I.23 (Book I, Proposition 23)",
+          "match_type": "exact",
+          "entity_keys": [
+            "PROP:I.23"
+          ]
+        },
+        {
+          "source_label": "COURSE.md",
+          "rel_path": "coursework/COURSE.md",
+          "title": "COURSE.md — Per-class Euclid propositions",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:13",
+            "PROP:I.1",
+            "PROP:I.10",
+            "PROP:I.11",
+            "PROP:I.12",
+            "PROP:I.15",
+            "PROP:I.2",
+            "PROP:I.20",
+            "PROP:I.22",
+            "PROP:I.23",
+            "PROP:I.27",
+            "PROP:I.29",
+            "PROP:I.3",
+            "PROP:I.31",
+            "PROP:I.32",
+            "PROP:I.34",
+            "PROP:I.4",
+            "PROP:I.41",
+            "PROP:I.46",
+            "PROP:I.47",
+            "PROP:I.5",
+            "PROP:I.6",
+            "PROP:I.8",
+            "PROP:I.9",
+            "PROP:II.11",
+            "PROP:II.12",
+            "PROP:II.13",
+            "PROP:II.4",
+            "PROP:III.1",
+            "PROP:III.17",
+            "PROP:III.18",
+            "PROP:III.20",
+            "PROP:III.21",
+            "PROP:III.35",
+            "PROP:III.36",
+            "PROP:IV.10",
+            "PROP:IV.11",
+            "PROP:IV.5",
+            "PROP:IV.6",
+            "PROP:VI.1",
+            "PROP:VI.2",
+            "PROP:VI.3",
+            "PROP:VI.4",
+            "TOPIC:ISOSCELES",
+            "TOPIC:PARALLEL",
+            "TOPIC:PYTHAGOREAN"
+          ]
+        },
+        {
+          "source_label": "projects/2026-project-i23/brief.md",
+          "rel_path": "coursework/projects/2026-project-i23/brief.md",
+          "title": "projects/2026-project-i23/brief.md — 2026-project-i23 · Group project brief",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:5",
+            "PROP:I.23",
+            "TOPIC:PRONUNCIATION"
+          ]
+        },
+        {
+          "source_label": "assignments/2026-greek-05/solution.qmd",
+          "rel_path": "coursework/assignments/2026-greek-05/solution.qmd",
+          "title": "assignments/2026-greek-05/solution.qmd — Errata (part 1)",
+          "match_type": "bm25",
+          "entity_keys": [
+            "PROP:I.20",
+            "PROP:I.21",
+            "PROP:I.22",
+            "PROP:I.23"
+          ]
+        }
+      ],
+      "english": "The enunciation of Proposition 23 of Book I is: To construct a rectilinear angle equal to a given rectilinear angle at a given point on a given straight-line. In the original Greek, this is stated as: Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι.",
+      "greek": "Ἡ πρότασις τοῦ κγʹ θεωρήματος τοῦ πρώτου βιβλίου ἐστὶν αὕτη· Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι.",
+      "sentence_count": 2,
+      "stt_ms": 109.3,
+      "rag_ms": 7.6,
+      "llm_ms": 1919.2,
+      "tts_first_sentence_ms": 571.6,
+      "tts_total_ms": 1157.7,
+      "total_unattended_ms": 2607.7,
+      "approval_wait_ms": 1606.0,
+      "post_approval_start_ms": 0.1,
+      "wav_path": "logs/audio/turn_c134c115_google_erasmian.wav"
+    },
+    {
+      "q_num": 2,
+      "qid": "q02_book1_definitions",
+      "expected_question": "How do you define a point, a straight line, a circle, and parallel straight lines in Book I?",
+      "transcript": "How do you define a point, a straight line, a circle, and parallel straight lines in book I?",
+      "sources": [
+        "Elements Book I Definitions & Axioms"
+      ],
+      "retrieved_details": [
+        {
+          "source_label": "Elements Book I Definitions & Axioms",
+          "rel_path": "materials/books/Elements.pdf",
+          "title": "Euclid's Elements Book I — Definitions, Postulates, Common Notions",
+          "match_type": "exact",
+          "entity_keys": [
+            "DEF:I",
+            "DEF:I.1",
+            "DEF:I.2",
+            "DEF:I.3",
+            "DEF:I.4",
+            "DEF:I.5",
+            "DEF:I.6",
+            "DEF:I.7",
+            "DEF:I.8",
+            "DEF:I.9",
+            "DEF:I.10",
+            "DEF:I.11",
+            "DEF:I.12",
+            "DEF:I.13",
+            "DEF:I.14",
+            "DEF:I.15",
+            "DEF:I.16",
+            "DEF:I.17",
+            "DEF:I.18",
+            "DEF:I.19",
+            "DEF:I.20",
+            "DEF:I.21",
+            "DEF:I.22",
+            "DEF:I.23",
+            "POST:1",
+            "POST:2",
+            "POST:3",
+            "POST:4",
+            "POST:5",
+            "CN:1",
+            "CN:2",
+            "CN:3",
+            "CN:4",
+            "CN:5",
+            "CN:6",
+            "CN:7",
+            "CN:8",
+            "CN:9"
+          ]
+        },
+        {
+          "source_label": "assignments/2026-greek-01/evidence.md",
+          "rel_path": "coursework/assignments/2026-greek-01/evidence.md",
+          "title": "assignments/2026-greek-01/evidence.md — The Greek of Definitions 1–6",
+          "match_type": "exact",
+          "entity_keys": [
+            "DEF:I.1",
+            "DEF:I.4",
+            "DEF:I.5",
+            "DEF:I.6",
+            "TOPIC:PRONUNCIATION"
+          ]
+        },
+        {
+          "source_label": "study/class-05-greek-notes.md",
+          "rel_path": "coursework/study/class-05-greek-notes.md",
+          "title": "study/class-05-greek-notes.md — Study note · the Greek of a construction: δεῖ + infinitive, perfect imperatives, τυχόν, ὅταν + subjunctive, οὐ against μή, and where the article goes",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:5",
+            "DEF:I.1",
+            "PROP:I.11",
+            "PROP:I.12",
+            "PROP:I.13",
+            "PROP:I.7",
+            "PROP:I.9"
+          ]
+        },
+        {
+          "source_label": "Elements I.31",
+          "rel_path": "materials/books/Elements.pdf",
+          "title": "Elements I.31 (Book I, Proposition 31)",
+          "match_type": "bm25",
+          "entity_keys": [
+            "PROP:I.31",
+            "TOPIC:PARALLEL"
+          ]
+        }
+      ],
+      "english": "A point is that of which there is no part, while a straight-line is one which lies evenly with the points on itself. A circle is a plane figure contained by one line such that all straight-lines falling upon it from one point inside the figure are equal to one another. Parallel straight-lines are those which, being in the same plane and being produced to infinity in both directions, meet one another in neither direction.",
+      "greek": "Σημεῖόν ἐστιν, οὗ μέρος οὐθέν, εὐθεῖα δὲ γραμμή ἐστιν, ἥτις ἐξ ἴσου τοῖς ἐφ᾿ ἑαυτῆς σημείοις κεῖται. Κύκλος ἐστὶ σχῆμα ἐπίπεδον ὑπὸ μιᾶς γραμμῆς περιεχόμενον, πρὸς ἣν ἀφ᾿ ἑνὸς σημείου τῶν ἐντὸς τοῦ σχήματος κειμένων πᾶσαι αἱ προσπίπτουσαι εὐθεῖαι ἴσαι ἀλλήλαις εἰσίν. Παράλληλοί εἰσιν εὐθεῖαι, αἵτινες ἐν τῷ αὐτῷ ἐπιπέδῳ οὖσαι καὶ ἐκβαλλόμεναι εἰς ἄπειρον ἐφ᾿ ἑκάτερα τὰ μέρη ἐπὶ μηδέτερα συμπίπτουσιν ἀλλήλαις.",
+      "sentence_count": 3,
+      "stt_ms": 142.7,
+      "rag_ms": 8.5,
+      "llm_ms": 4808.0,
+      "tts_first_sentence_ms": 573.2,
+      "tts_total_ms": 1815.7,
+      "total_unattended_ms": 5532.4,
+      "approval_wait_ms": 1603.2,
+      "post_approval_start_ms": 0.08,
+      "wav_path": "logs/audio/turn_b7ef8c7f_google_erasmian.wav"
+    },
+    {
+      "q_num": 3,
+      "qid": "q03_postulate_5",
+      "expected_question": "State the fifth postulate in Greek and explain when two straight lines produced indefinitely meet.",
+      "transcript": "State the fifth postulate in Greek and explain when two straight lines produced indefinitely meet.",
+      "sources": [
+        "Elements Book I Definitions & Axioms",
+        "COURSE.md"
+      ],
+      "retrieved_details": [
+        {
+          "source_label": "Elements Book I Definitions & Axioms",
+          "rel_path": "materials/books/Elements.pdf",
+          "title": "Euclid's Elements Book I — Definitions, Postulates, Common Notions",
+          "match_type": "exact",
+          "entity_keys": [
+            "DEF:I",
+            "DEF:I.1",
+            "DEF:I.2",
+            "DEF:I.3",
+            "DEF:I.4",
+            "DEF:I.5",
+            "DEF:I.6",
+            "DEF:I.7",
+            "DEF:I.8",
+            "DEF:I.9",
+            "DEF:I.10",
+            "DEF:I.11",
+            "DEF:I.12",
+            "DEF:I.13",
+            "DEF:I.14",
+            "DEF:I.15",
+            "DEF:I.16",
+            "DEF:I.17",
+            "DEF:I.18",
+            "DEF:I.19",
+            "DEF:I.20",
+            "DEF:I.21",
+            "DEF:I.22",
+            "DEF:I.23",
+            "POST:1",
+            "POST:2",
+            "POST:3",
+            "POST:4",
+            "POST:5",
+            "CN:1",
+            "CN:2",
+            "CN:3",
+            "CN:4",
+            "CN:5",
+            "CN:6",
+            "CN:7",
+            "CN:8",
+            "CN:9"
+          ]
+        },
+        {
+          "source_label": "study/class-02-greek-notes.md",
+          "rel_path": "coursework/study/class-02-greek-notes.md",
+          "title": "study/class-02-greek-notes.md — Study note · reading Euclid's Greek: the colour code, and the grammar that recurs",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:2",
+            "POST:5",
+            "PROP:I.1",
+            "TOPIC:PROP_PARTS"
+          ]
+        },
+        {
+          "source_label": "study/class-05-geometry-notes.md",
+          "rel_path": "coursework/study/class-05-geometry-notes.md",
+          "title": "study/class-05-geometry-notes.md — 4. What I.12 rests on — the tree, checked",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:3",
+            "CLASS:4",
+            "CLASS:5",
+            "DEF:I.10",
+            "POST:4",
+            "POST:5",
+            "PROP:I.1",
+            "PROP:I.10",
+            "PROP:I.11",
+            "PROP:I.12",
+            "PROP:I.13",
+            "PROP:I.14",
+            "PROP:I.2",
+            "PROP:I.29",
+            "PROP:I.3",
+            "PROP:I.4",
+            "PROP:I.5",
+            "PROP:I.6",
+            "PROP:I.7",
+            "PROP:I.8",
+            "PROP:I.9",
+            "PROP:II.12",
+            "PROP:II.13",
+            "TOPIC:HYPERBOLIC",
+            "TOPIC:ISOSCELES",
+            "TOPIC:PARALLEL"
+          ]
+        },
+        {
+          "source_label": "assignments/2026-math-04/solution.qmd",
+          "rel_path": "coursework/assignments/2026-math-04/solution.qmd",
+          "title": "assignments/2026-math-04/solution.qmd — R Script problem 3 — a spherical rhomboid",
+          "match_type": "bm25",
+          "entity_keys": [
+            "DEF:I.22",
+            "PROP:I.1",
+            "PROP:I.2",
+            "PROP:I.4",
+            "TOPIC:SPHERICAL"
+          ]
+        }
+      ],
+      "english": "Euclid's fifth postulate states: 'If a straight-line falling on two straight-lines makes the interior angles on the same side less than two right-angles, the two straight-lines, if produced indefinitely, meet on that side on which the angles are less than two right-angles.' This condition implies that the lines will intersect only on the side where the sum of the interior angles is strictly less than the sum of two right angles.",
+      "greek": "Καὶ ἐὰν εἰς δύο εὐθείας εὐθεῖα ἐμπίπτουσα τὰς ἐντὸς καὶ ἐπὶ τὰ αὐτὰ μέρη γωνίας δύο ὀρθῶν ἐλάσσονες ποιῇ, ἐκβαλλομένας τὰς δύο εὐθείας ἐπ᾿ ἄπειρον συμπίπτειν, ἐφ᾿ ἃ μέρη εἰσὶν αἱ τῶν δύο ὀρθῶν ἐλάσσονες. αὕτη ἡ συνθήκη σημαίνει ὅτι αἱ εὐθεῖαι συμπίπτουσιν ἐπὶ ἐκείνου τοῦ μέρους, ἔνθα τὸ ἄθροισμα τῶν ἐντὸς γωνιῶν ἐλάττον ἐστὶν ἢ δύο ὀρθαί.",
+      "sentence_count": 2,
+      "stt_ms": 117.7,
+      "rag_ms": 3.6,
+      "llm_ms": 2104.5,
+      "tts_first_sentence_ms": 763.5,
+      "tts_total_ms": 1370.1,
+      "total_unattended_ms": 2989.4,
+      "approval_wait_ms": 1604.0,
+      "post_approval_start_ms": 0.09,
+      "wav_path": "logs/audio/turn_e5d9e2bc_google_erasmian.wav"
+    },
+    {
+      "q_num": 4,
+      "qid": "q04_common_notions",
+      "expected_question": "What is the first common notion in Book I, and how does the course list of nine common notions differ from Fitzpatrick's five?",
+      "transcript": "What is the first common notion in book I, and how does the course list of nine common notions differ from Fitzpatrick's five?",
+      "sources": [
+        "study/class-02-geometry-notes.md",
+        "lectures/2026-class-02/lecture-note.md",
+        "Elements I.1"
+      ],
+      "retrieved_details": [
+        {
+          "source_label": "Elements Book I Definitions & Axioms",
+          "rel_path": "materials/books/Elements.pdf",
+          "title": "Euclid's Elements Book I — Definitions, Postulates, Common Notions",
+          "match_type": "exact",
+          "entity_keys": [
+            "DEF:I",
+            "DEF:I.1",
+            "DEF:I.2",
+            "DEF:I.3",
+            "DEF:I.4",
+            "DEF:I.5",
+            "DEF:I.6",
+            "DEF:I.7",
+            "DEF:I.8",
+            "DEF:I.9",
+            "DEF:I.10",
+            "DEF:I.11",
+            "DEF:I.12",
+            "DEF:I.13",
+            "DEF:I.14",
+            "DEF:I.15",
+            "DEF:I.16",
+            "DEF:I.17",
+            "DEF:I.18",
+            "DEF:I.19",
+            "DEF:I.20",
+            "DEF:I.21",
+            "DEF:I.22",
+            "DEF:I.23",
+            "POST:1",
+            "POST:2",
+            "POST:3",
+            "POST:4",
+            "POST:5",
+            "CN:1",
+            "CN:2",
+            "CN:3",
+            "CN:4",
+            "CN:5",
+            "CN:6",
+            "CN:7",
+            "CN:8",
+            "CN:9"
+          ]
+        },
+        {
+          "source_label": "study/class-02-geometry-notes.md",
+          "rel_path": "coursework/study/class-02-geometry-notes.md",
+          "title": "study/class-02-geometry-notes.md — The two holes in *Elements* I.1",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:2",
+            "CN:1",
+            "PROP:I.1"
+          ]
+        },
+        {
+          "source_label": "study/class-02-greek-notes.md",
+          "rel_path": "coursework/study/class-02-greek-notes.md",
+          "title": "study/class-02-greek-notes.md — Small vocabulary that pays for itself",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:2",
+            "CN:1",
+            "TOPIC:PARALLEL"
+          ]
+        },
+        {
+          "source_label": "lectures/2026-class-02/lecture-note.md",
+          "rel_path": "coursework/lectures/2026-class-02/lecture-note.md",
+          "title": "lectures/2026-class-02/lecture-note.md — 00:14:56–00:15:41 · `EuclidCN`, and how many common notions there are",
+          "match_type": "bm25",
+          "entity_keys": [
+            "CLASS:2",
+            "CN:4"
+          ]
+        }
+      ],
+      "english": "The first common notion is: Things equal to the same thing are also equal to one another. While the earliest manuscripts contain only five common notions, the course materials include nine, identifying the additional four as later interpolations.",
+      "greek": "Τὰ τῷ αὐτῷ ἴσα καὶ ἀλλήλοις ἐστὶν ἴσα. Καίτοι τὰ ἀρχαιότατα χειρόγραφα πέντε μόνας κοινὰς ἐννοίας ἔχει, τὰ δὲ τοῦ μαθήματος ὑπομνήματα ἐννέα παρατίθεται, τὰς δὲ τέσσαρας προσθήκας μεταγενεστέρας εἶναι δηλοῖ.",
+      "sentence_count": 2,
+      "stt_ms": 142.7,
+      "rag_ms": 7.4,
+      "llm_ms": 1628.4,
+      "tts_first_sentence_ms": 424.6,
+      "tts_total_ms": 1141.1,
+      "total_unattended_ms": 2203.1,
+      "approval_wait_ms": 1605.4,
+      "post_approval_start_ms": 0.12,
+      "wav_path": "logs/audio/turn_2f2e7f87_google_erasmian.wav"
+    },
+    {
+      "q_num": 5,
+      "qid": "q05_six_parts_of_proposition",
+      "expected_question": "What are the six canonical parts of a Euclidean proposition, and when do you end with hoper edei poiesai versus hoper edei deixai?",
+      "transcript": "What are the six canonical parts of a Euclidean proposition? And when do you end with hoper etae poiesae versus hoper etae dexe?",
+      "sources": [
+        "GK-PROPPARTS",
+        "study/class-02-greek-notes.md",
+        "study/class-03-greek-notes.md"
+      ],
+      "retrieved_details": [
+        {
+          "source_label": "study/class-02-greek-notes.md",
+          "rel_path": "coursework/study/class-02-greek-notes.md",
+          "title": "study/class-02-greek-notes.md — Study note · reading Euclid's Greek: the colour code, and the grammar that recurs",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:2",
+            "POST:5",
+            "PROP:I.1",
+            "TOPIC:PROP_PARTS"
+          ]
+        },
+        {
+          "source_label": "study/class-02-greek-notes.md",
+          "rel_path": "coursework/study/class-02-greek-notes.md",
+          "title": "study/class-02-greek-notes.md — The shape of a proposition",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:2",
+            "PROP:I.1",
+            "TOPIC:PROP_PARTS"
+          ]
+        },
+        {
+          "source_label": "study/class-03-greek-notes.md",
+          "rel_path": "coursework/study/class-03-greek-notes.md",
+          "title": "study/class-03-greek-notes.md — 6. The parts, and the two ways to end",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:2",
+            "CLASS:3",
+            "PROP:I.1",
+            "PROP:I.2",
+            "PROP:I.3",
+            "PROP:I.4",
+            "TOPIC:PROP_PARTS"
+          ]
+        },
+        {
+          "source_label": "Microsoft Word - Parts of a Euclidean Proposition, and how to end.docx p.2",
+          "rel_path": "materials/course/greek-resources/Microsoft Word - Parts of a Euclidean Proposition, and how to end.docx.pdf",
+          "title": "Microsoft Word - Parts of a Euclidean Proposition, and how to end.docx (p. 2)",
+          "match_type": "bm25",
+          "entity_keys": [
+            "PROP:I.1",
+            "PROP:I.4",
+            "TOPIC:PROP_PARTS"
+          ]
+        }
+      ],
+      "english": "The six canonical parts of a Euclidean proposition are the enunciation (πρότασις), setting-out (ἔκθεσις), specification (διορισμός), construction (κατασκευή), proof (ἀπόδειξις), and conclusion (συμπέρασμα). You end with ὅπερ ἔδει ποιῆσαι when completing a construction problem, whereas you end with ὅπερ ἔδει δεῖξαι when demonstrating a theorem.",
+      "greek": "τὰ ἓξ μέρη τῆς εὐκλειδείου προτάσεως εἰσὶν ἡ πρότασις, ἡ ἔκθεσις, ὁ διορισμός, ἡ κατασκευή, ἡ ἀπόδειξις, καὶ τὸ συμπέρασμα. τῷ μὲν ὅπερ ἔδει ποιῆσαι χρῆται ὁ εὐκλείδης ἐν τοῖς προβλήμασι, τῷ δὲ ὅπερ ἔδει δεῖξαι ἐν τοῖς θεωρήμασιν.",
+      "sentence_count": 2,
+      "stt_ms": 166.0,
+      "rag_ms": 6.3,
+      "llm_ms": 3310.7,
+      "tts_first_sentence_ms": 520.1,
+      "tts_total_ms": 986.6,
+      "total_unattended_ms": 4003.2,
+      "approval_wait_ms": 1602.2,
+      "post_approval_start_ms": 0.1,
+      "wav_path": "logs/audio/turn_51e8bac3_google_erasmian.wav"
+    },
+    {
+      "q_num": 6,
+      "qid": "q06_prop_i1_equilateral",
+      "expected_question": "How does Proposition I.1 construct an equilateral triangle on a given finite straight line, and what intersection assumption do modern readers note?",
+      "transcript": "How does Proposition I.1 construct an equilateral triangle on a given finite straight line, and what intersection assumption do modern readers note?",
+      "sources": [
+        "Elements I.1",
+        "study/class-02-geometry-notes.md"
+      ],
+      "retrieved_details": [
+        {
+          "source_label": "Elements I.1",
+          "rel_path": "materials/books/Elements.pdf",
+          "title": "Elements I.1 (Book I, Proposition 1)",
+          "match_type": "exact",
+          "entity_keys": [
+            "PROP:I.1"
+          ]
+        },
+        {
+          "source_label": "COURSE.md",
+          "rel_path": "coursework/COURSE.md",
+          "title": "COURSE.md — Per-class Euclid propositions",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:13",
+            "PROP:I.1",
+            "PROP:I.10",
+            "PROP:I.11",
+            "PROP:I.12",
+            "PROP:I.15",
+            "PROP:I.2",
+            "PROP:I.20",
+            "PROP:I.22",
+            "PROP:I.23",
+            "PROP:I.27",
+            "PROP:I.29",
+            "PROP:I.3",
+            "PROP:I.31",
+            "PROP:I.32",
+            "PROP:I.34",
+            "PROP:I.4",
+            "PROP:I.41",
+            "PROP:I.46",
+            "PROP:I.47",
+            "PROP:I.5",
+            "PROP:I.6",
+            "PROP:I.8",
+            "PROP:I.9",
+            "PROP:II.11",
+            "PROP:II.12",
+            "PROP:II.13",
+            "PROP:II.4",
+            "PROP:III.1",
+            "PROP:III.17",
+            "PROP:III.18",
+            "PROP:III.20",
+            "PROP:III.21",
+            "PROP:III.35",
+            "PROP:III.36",
+            "PROP:IV.10",
+            "PROP:IV.11",
+            "PROP:IV.5",
+            "PROP:IV.6",
+            "PROP:VI.1",
+            "PROP:VI.2",
+            "PROP:VI.3",
+            "PROP:VI.4",
+            "TOPIC:ISOSCELES",
+            "TOPIC:PARALLEL",
+            "TOPIC:PYTHAGOREAN"
+          ]
+        },
+        {
+          "source_label": "study/class-02-geometry-notes.md",
+          "rel_path": "coursework/study/class-02-geometry-notes.md",
+          "title": "study/class-02-geometry-notes.md — Study note · what Euclid's common notions and postulates actually assume",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:2",
+            "PROP:I.1",
+            "TOPIC:HYPERBOLIC"
+          ]
+        },
+        {
+          "source_label": "assignments/2026-math-04/p2-assistant-reply-2a.md",
+          "rel_path": "coursework/assignments/2026-math-04/p2-assistant-reply-2a.md",
+          "title": "assignments/2026-math-04/p2-assistant-reply-2a.md — Verified figure (course figure library): Book 1, Proposition 1: constructing an equilateral triangle on a given line (part 1)",
+          "match_type": "bm25",
+          "entity_keys": [
+            "PROP:I.1"
+          ]
+        }
+      ],
+      "english": "To construct an equilateral triangle on a given finite straight-line AB, one draws two circles with centers A and B and radius AB, then joins the intersection point C to A and B. Modern readers note that the proof implicitly assumes the circles must intersect, which requires the axiom that two straight-lines cannot share a common segment.",
+      "greek": "Ἐπὶ τῆς δοθείσης εὐθείας πεπερασμένης τρίγωνον ἰσόπλευρον συστήσασθαι. Ὁ δὲ συλλογισμὸς ὑποτίθεται ὅτι οἱ κύκλοι τέμνουσιν ἀλλήλους, ὅπερ ἀπαιτεῖ τὴν ἀξίωσιν ὅτι δύο εὐθεῖαι χωρίον οὐ περιέχουσιν.",
+      "sentence_count": 2,
+      "stt_ms": 153.3,
+      "rag_ms": 8.7,
+      "llm_ms": 2066.1,
+      "tts_first_sentence_ms": 477.2,
+      "tts_total_ms": 980.5,
+      "total_unattended_ms": 2705.2,
+      "approval_wait_ms": 1601.0,
+      "post_approval_start_ms": 0.12,
+      "wav_path": "logs/audio/turn_caefcad4_google_erasmian.wav"
+    },
+    {
+      "q_num": 7,
+      "qid": "q07_prop_i5_isosceles",
+      "expected_question": "What does Proposition I.5 prove about the base angles of isosceles triangles?",
+      "transcript": "What does Proposition I.5 prove about the base angles of isosceles triangles?",
+      "sources": [
+        "Elements I.5",
+        "study/class-02-greek-notes.md"
+      ],
+      "retrieved_details": [
+        {
+          "source_label": "Elements I.5",
+          "rel_path": "materials/books/Elements.pdf",
+          "title": "Elements I.5 (Book I, Proposition 5)",
+          "match_type": "exact",
+          "entity_keys": [
+            "PROP:I.5",
+            "TOPIC:ISOSCELES"
+          ]
+        },
+        {
+          "source_label": "COURSE.md",
+          "rel_path": "coursework/COURSE.md",
+          "title": "COURSE.md — Per-class Euclid propositions",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:13",
+            "PROP:I.1",
+            "PROP:I.10",
+            "PROP:I.11",
+            "PROP:I.12",
+            "PROP:I.15",
+            "PROP:I.2",
+            "PROP:I.20",
+            "PROP:I.22",
+            "PROP:I.23",
+            "PROP:I.27",
+            "PROP:I.29",
+            "PROP:I.3",
+            "PROP:I.31",
+            "PROP:I.32",
+            "PROP:I.34",
+            "PROP:I.4",
+            "PROP:I.41",
+            "PROP:I.46",
+            "PROP:I.47",
+            "PROP:I.5",
+            "PROP:I.6",
+            "PROP:I.8",
+            "PROP:I.9",
+            "PROP:II.11",
+            "PROP:II.12",
+            "PROP:II.13",
+            "PROP:II.4",
+            "PROP:III.1",
+            "PROP:III.17",
+            "PROP:III.18",
+            "PROP:III.20",
+            "PROP:III.21",
+            "PROP:III.35",
+            "PROP:III.36",
+            "PROP:IV.10",
+            "PROP:IV.11",
+            "PROP:IV.5",
+            "PROP:IV.6",
+            "PROP:VI.1",
+            "PROP:VI.2",
+            "PROP:VI.3",
+            "PROP:VI.4",
+            "TOPIC:ISOSCELES",
+            "TOPIC:PARALLEL",
+            "TOPIC:PYTHAGOREAN"
+          ]
+        },
+        {
+          "source_label": "study/class-02-greek-notes.md",
+          "rel_path": "coursework/study/class-02-greek-notes.md",
+          "title": "study/class-02-greek-notes.md — Questions and connections",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:2",
+            "CLASS:3",
+            "POST:2",
+            "PROP:I.1",
+            "PROP:I.4",
+            "PROP:I.5",
+            "PROP:I.6",
+            "PROP:I.8",
+            "TOPIC:ISOSCELES"
+          ]
+        },
+        {
+          "source_label": "projects/2026-project-i8/draft.md",
+          "rel_path": "coursework/projects/2026-project-i8/draft.md",
+          "title": "projects/2026-project-i8/draft.md — Where it sits",
+          "match_type": "bm25",
+          "entity_keys": [
+            "PROP:I.4",
+            "PROP:I.5",
+            "PROP:I.7",
+            "PROP:I.8",
+            "TOPIC:ISOSCELES"
+          ]
+        }
+      ],
+      "english": "Proposition I.5 states that in isosceles triangles, the angles at the base are equal to one another, and if the equal straight-lines are produced further, the angles under the base will also be equal to one another. The enunciation is: Τῶν ἰσοσκελῶν τριγώνων αἱ πρὸς τῇ βάσει γωνίαι ἴσαι ἀλλήλαις εἰσίν, καὶ προσεκβληθεισῶν τῶν ἴσων εὐθειῶν αἱ ὑπὸ τὴν βάσιν γωνίαι ἴσαι ἀλλήλαις ἔσονται.",
+      "greek": "Τῶν ἰσοσκελῶν τριγώνων αἱ πρὸς τῇ βάσει γωνίαι ἴσαι ἀλλήλαις εἰσίν, καὶ προσεκβληθεισῶν τῶν ἴσων εὐθειῶν αἱ ὑπὸ τὴν βάσιν γωνίαι ἴσαι ἀλλήλαις ἔσονται. ἡ πρότασις αὕτη δηλοῖ ὅτι ἐν τοῖς ἰσοσκελέσι τριγώνοις αἱ πρὸς τῇ βάσει γωνίαι ἴσαι εἰσίν, καὶ ἐὰν αἱ ἴσαι εὐθεῖαι ἐκβληθῶσιν, αἱ ὑπὸ τὴν βάσιν γωνίαι ὁμοίως ἴσαι ἔσονται.",
+      "sentence_count": 2,
+      "stt_ms": 134.6,
+      "rag_ms": 5.1,
+      "llm_ms": 2089.7,
+      "tts_first_sentence_ms": 556.5,
+      "tts_total_ms": 1150.7,
+      "total_unattended_ms": 2786.0,
+      "approval_wait_ms": 1606.6,
+      "post_approval_start_ms": 0.04,
+      "wav_path": "logs/audio/turn_1fa9d922_google_erasmian.wav"
+    },
+    {
+      "q_num": 8,
+      "qid": "q08_prop_i12_perpendicular",
+      "expected_question": "In Proposition I.12, how do you draw a perpendicular straight line to a given infinite straight line from a given point not on it?",
+      "transcript": "In Proposition I.12, how do you draw a perpendicular straight line to a given infinite straight line from a given point not on it?",
+      "sources": [
+        "Elements I.12",
+        "projects/2026-project-i12/diagram/writeup.qmd"
+      ],
+      "retrieved_details": [
+        {
+          "source_label": "Elements I.12",
+          "rel_path": "materials/books/Elements.pdf",
+          "title": "Elements I.12 (Book I, Proposition 12)",
+          "match_type": "exact",
+          "entity_keys": [
+            "PROP:I.12"
+          ]
+        },
+        {
+          "source_label": "COURSE.md",
+          "rel_path": "coursework/COURSE.md",
+          "title": "COURSE.md — Per-class Euclid propositions",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:13",
+            "PROP:I.1",
+            "PROP:I.10",
+            "PROP:I.11",
+            "PROP:I.12",
+            "PROP:I.15",
+            "PROP:I.2",
+            "PROP:I.20",
+            "PROP:I.22",
+            "PROP:I.23",
+            "PROP:I.27",
+            "PROP:I.29",
+            "PROP:I.3",
+            "PROP:I.31",
+            "PROP:I.32",
+            "PROP:I.34",
+            "PROP:I.4",
+            "PROP:I.41",
+            "PROP:I.46",
+            "PROP:I.47",
+            "PROP:I.5",
+            "PROP:I.6",
+            "PROP:I.8",
+            "PROP:I.9",
+            "PROP:II.11",
+            "PROP:II.12",
+            "PROP:II.13",
+            "PROP:II.4",
+            "PROP:III.1",
+            "PROP:III.17",
+            "PROP:III.18",
+            "PROP:III.20",
+            "PROP:III.21",
+            "PROP:III.35",
+            "PROP:III.36",
+            "PROP:IV.10",
+            "PROP:IV.11",
+            "PROP:IV.5",
+            "PROP:IV.6",
+            "PROP:VI.1",
+            "PROP:VI.2",
+            "PROP:VI.3",
+            "PROP:VI.4",
+            "TOPIC:ISOSCELES",
+            "TOPIC:PARALLEL",
+            "TOPIC:PYTHAGOREAN"
+          ]
+        },
+        {
+          "source_label": "study/class-05-geometry-notes.md",
+          "rel_path": "coursework/study/class-05-geometry-notes.md",
+          "title": "study/class-05-geometry-notes.md — Study note · the four constructions I.9–I.12: one engine, what they rest on, why bisecting is possible and trisecting is not, and the Hermes distance formula",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:5",
+            "PROP:I.1",
+            "PROP:I.12",
+            "PROP:I.13",
+            "PROP:I.4",
+            "PROP:I.9"
+          ]
+        },
+        {
+          "source_label": "projects/2026-project-i12/diagram/writeup.qmd",
+          "rel_path": "coursework/projects/2026-project-i12/diagram/writeup.qmd",
+          "title": "projects/2026-project-i12/diagram/writeup.qmd — The figure and its letters",
+          "match_type": "bm25",
+          "entity_keys": [
+            "PROP:I.12"
+          ]
+        }
+      ],
+      "english": "To draw a perpendicular to a given infinite straight-line from a given point not on it, one must first take a point on the other side of the line and describe a circle with the given point as center and the distance to the chosen point as radius. After bisecting the resulting chord on the given line, one joins the given point to the point of bisection, which creates the required perpendicular.",
+      "greek": "Πρὸς τὴν δοθεῖσαν ἄπειρον εὐθεῖαν ἀπὸ τοῦ δοθέντος σημείου, ὃ μὴ ἔστιν ἐπ᾿ αὐτῆς, κάθετον εὐθεῖαν γραμμὴν ἀγαγεῖν, δεῖ λαβόντα σημεῖον ἐπὶ τὰ ἕτερα μέρη τῆς εὐθείας γράψαι κύκλον κέντρῳ μὲν τῷ δοθέντι σημείῳ, διαστήματι δὲ τῷ πρὸς τὸ εἰλημμένον σημεῖον. τεμούσης δὲ τῆς εὐθείας τὴν βάσιν δίχα, ἐπεζευγμένη ἡ ἀπὸ τοῦ δοθέντος σημείου ἐπὶ τὸ δίχα τμηθὲν σημεῖον εὐθεῖα τὴν ζητουμένην κάθετον ποιήσει.",
+      "sentence_count": 2,
+      "stt_ms": 132.6,
+      "rag_ms": 6.0,
+      "llm_ms": 4010.5,
+      "tts_first_sentence_ms": 830.7,
+      "tts_total_ms": 1413.8,
+      "total_unattended_ms": 4979.9,
+      "approval_wait_ms": 1605.9,
+      "post_approval_start_ms": 0.06,
+      "wav_path": "logs/audio/turn_33c31e67_google_erasmian.wav"
+    },
+    {
+      "q_num": 9,
+      "qid": "q09_spherical_hyperbolic_i23",
+      "expected_question": "Does Proposition I.23 hold in spherical geometry and in the Poincaré upper half-plane model of hyperbolic geometry from Class 5 and Class 6?",
+      "transcript": "Does Proposition I.23 hold in spherical geometry and in the Poincaré upper half-plane model of hyperbolic geometry from Class 5 and Class 6?",
+      "sources": [
+        "projects/2026-project-i23/other-geometries/slides.qmd",
+        "study/class-05-geometry-notes.md"
+      ],
+      "retrieved_details": [
+        {
+          "source_label": "projects/2026-project-i23/brief.md",
+          "rel_path": "coursework/projects/2026-project-i23/brief.md",
+          "title": "projects/2026-project-i23/brief.md — Open",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:3",
+            "CLASS:5",
+            "CLASS:6",
+            "PROP:I.23"
+          ]
+        },
+        {
+          "source_label": "projects/2026-project-i23/other-geometries/slides.qmd",
+          "rel_path": "coursework/projects/2026-project-i23/other-geometries/slides.qmd",
+          "title": "projects/2026-project-i23/other-geometries/slides.qmd — I.23 in other geometries: the same construction works",
+          "match_type": "exact",
+          "entity_keys": [
+            "PROP:I.22",
+            "PROP:I.23",
+            "PROP:I.8",
+            "TOPIC:HYPERBOLIC",
+            "TOPIC:SPHERICAL"
+          ]
+        },
+        {
+          "source_label": "projects/2026-project-i23/other-geometries/slides.qmd",
+          "rel_path": "coursework/projects/2026-project-i23/other-geometries/slides.qmd",
+          "title": "projects/2026-project-i23/other-geometries/slides.qmd — Why it carries over",
+          "match_type": "exact",
+          "entity_keys": [
+            "POST:5",
+            "PROP:I.22",
+            "PROP:I.23",
+            "PROP:I.29",
+            "PROP:I.8",
+            "TOPIC:HYPERBOLIC",
+            "TOPIC:PARALLEL",
+            "TOPIC:SPHERICAL"
+          ]
+        },
+        {
+          "source_label": "study/class-02-geometry-notes.md",
+          "rel_path": "coursework/study/class-02-geometry-notes.md",
+          "title": "study/class-02-geometry-notes.md — \"Hermes\": the app's fourth geometry, identified rather than assumed",
+          "match_type": "bm25",
+          "entity_keys": [
+            "CLASS:2",
+            "TOPIC:HYPERBOLIC",
+            "TOPIC:SPHERICAL"
+          ]
+        }
+      ],
+      "english": "Proposition I.23 holds in both spherical and hyperbolic geometries because its construction relies solely on Propositions I.22 and I.8, which do not depend on the parallel postulate. While the triangle's angle sum varies across these geometries, the geometric construction of copying an angle remains valid in each setting.",
+      "greek": "Ἡ κγʹ πρότασις τοῦ πρώτου βιβλίου ἰσχύει ἔν τε τῇ σφαιρικῇ καὶ τῇ ὑπερβολικῇ γεωμετρίᾳ, ἐπειδὴ ἡ κατασκευὴ αὐτῆς ἐπὶ ταῖς κβʹ καὶ ηʹ προτάσεσι στηρίζεται, αἵτινες οὐκ ἐξαρτῶνται ἐκ τοῦ τῶν παραλλήλων αἰτήματος. καίπερ τοῦ ἀθροίσματος τῶν γωνιῶν τοῦ τριγώνου μεταβαλλομένου ἐν ταύταις ταῖς γεωμετρίαις, ἡ γεωμετρικὴ κατασκευὴ τῆς μεταφορᾶς τῆς γωνίας ἐν ἑκάστῃ τούτων παραμένει ἀληθής.",
+      "sentence_count": 2,
+      "stt_ms": 149.5,
+      "rag_ms": 7.6,
+      "llm_ms": 2113.3,
+      "tts_first_sentence_ms": 682.9,
+      "tts_total_ms": 1260.6,
+      "total_unattended_ms": 2953.4,
+      "approval_wait_ms": 1605.7,
+      "post_approval_start_ms": 0.05,
+      "wav_path": "logs/audio/turn_4b94a51f_google_erasmian.wav"
+    },
+    {
+      "q_num": 10,
+      "qid": "q10_prop_i47_pythagorean",
+      "expected_question": "State Proposition I.47, the Pythagorean theorem, in Greek and English, and explain how the proof uses parallelograms.",
+      "transcript": "State Proposition I, 47, the Pythagorean theorem, in Greek and English, and explain how the proof uses parallelograms.",
+      "sources": [
+        "Elements I.47",
+        "COURSE.md"
+      ],
+      "retrieved_details": [
+        {
+          "source_label": "Elements I.47",
+          "rel_path": "materials/books/Elements.pdf",
+          "title": "Elements I.47 (Book I, Proposition 47)",
+          "match_type": "exact",
+          "entity_keys": [
+            "PROP:I.47",
+            "TOPIC:PYTHAGOREAN"
+          ]
+        },
+        {
+          "source_label": "COURSE.md",
+          "rel_path": "coursework/COURSE.md",
+          "title": "COURSE.md — Per-class Euclid propositions",
+          "match_type": "exact",
+          "entity_keys": [
+            "CLASS:13",
+            "PROP:I.1",
+            "PROP:I.10",
+            "PROP:I.11",
+            "PROP:I.12",
+            "PROP:I.15",
+            "PROP:I.2",
+            "PROP:I.20",
+            "PROP:I.22",
+            "PROP:I.23",
+            "PROP:I.27",
+            "PROP:I.29",
+            "PROP:I.3",
+            "PROP:I.31",
+            "PROP:I.32",
+            "PROP:I.34",
+            "PROP:I.4",
+            "PROP:I.41",
+            "PROP:I.46",
+            "PROP:I.47",
+            "PROP:I.5",
+            "PROP:I.6",
+            "PROP:I.8",
+            "PROP:I.9",
+            "PROP:II.11",
+            "PROP:II.12",
+            "PROP:II.13",
+            "PROP:II.4",
+            "PROP:III.1",
+            "PROP:III.17",
+            "PROP:III.18",
+            "PROP:III.20",
+            "PROP:III.21",
+            "PROP:III.35",
+            "PROP:III.36",
+            "PROP:IV.10",
+            "PROP:IV.11",
+            "PROP:IV.5",
+            "PROP:IV.6",
+            "PROP:VI.1",
+            "PROP:VI.2",
+            "PROP:VI.3",
+            "PROP:VI.4",
+            "TOPIC:ISOSCELES",
+            "TOPIC:PARALLEL",
+            "TOPIC:PYTHAGOREAN"
+          ]
+        },
+        {
+          "source_label": "COURSE.md",
+          "rel_path": "coursework/COURSE.md",
+          "title": "COURSE.md — Class schedule from syllabus PDF pp. 11-13",
+          "match_type": "exact",
+          "entity_keys": [
+            "TOPIC:CAYLEY_KLEIN",
+            "TOPIC:HYPERBOLIC",
+            "TOPIC:ISOSCELES",
+            "TOPIC:PARALLEL",
+            "TOPIC:PYTHAGOREAN",
+            "TOPIC:SPHERICAL"
+          ]
+        },
+        {
+          "source_label": "MathNotes04 p.6",
+          "rel_path": "materials/course/math-notes/MathNotes04.pdf",
+          "title": "MathNotes04 (p. 6)",
+          "match_type": "bm25",
+          "entity_keys": [
+            "CLASS:4",
+            "TOPIC:PYTHAGOREAN",
+            "TOPIC:SPHERICAL"
+          ]
+        }
+      ],
+      "english": "In right-angled triangles, the square on the side subtending the right-angle is equal to the sum of the squares on the sides containing the right-angle. The proof utilizes parallelograms by demonstrating that the square on each leg is equal in area to a specific parallelogram, which is then shown to be equal to a portion of the square on the hypotenuse.",
+      "greek": "Ἐν τοῖς ὀρθογωνίοις τριγώνοις τὸ ἀπὸ τῆς τὴν ὀρθὴν γωνίαν ὑποτεινούσης πλευρᾶς τετράγωνον ἴσον ἐστὶ τοῖς ἀπὸ τῶν τὴν ὀρθὴν γωνίαν περιεχουσῶν πλευρῶν τετραγώνοις. ἡ δὲ ἀπόδειξις χρῆται τοῖς παραλληλογράμμοις δεικνῦσα ὅτι τὸ ἀπὸ ἑκατέρας τῶν περὶ τὴν ὀρθὴν γωνίαν πλευρῶν τετράγωνον ἴσον ἐστὶ τῷ παραλληλογράμμῳ, ὅπερ ἴσον δείκνυται μέρει τοῦ ἀπὸ τῆς ὑποτεινούσης τετραγώνου.",
+      "sentence_count": 2,
+      "stt_ms": 132.2,
+      "rag_ms": 2.6,
+      "llm_ms": 3799.3,
+      "tts_first_sentence_ms": 581.7,
+      "tts_total_ms": 1372.8,
+      "total_unattended_ms": 4515.8,
+      "approval_wait_ms": 1602.7,
+      "post_approval_start_ms": 0.07,
+      "wav_path": "logs/audio/turn_0fe0dd59_google_erasmian.wav"
+    }
+  ],
+  "tts_comparison": [
+    {
+      "backend": "google_erasmian",
+      "voice": "en-US-Neural2-D",
+      "label": "Google Cloud Erasmian Male (D)",
+      "i23_synth_ms": 644.2,
+      "i23_dur_s": 12.478,
+      "i47_synth_ms": 618.6,
+      "i47_dur_s": 15.814
+    },
+    {
+      "backend": "google_erasmian",
+      "voice": "en-US-Neural2-J",
+      "label": "Google Cloud Erasmian Male (J)",
+      "i23_synth_ms": 556.5,
+      "i23_dur_s": 11.976,
+      "i47_synth_ms": 544.9,
+      "i47_dur_s": 14.519
+    },
+    {
+      "backend": "google_erasmian",
+      "voice": "en-US-Neural2-H",
+      "label": "Google Cloud Erasmian Female (H, euclid-tts baseline)",
+      "i23_synth_ms": 600.5,
+      "i23_dur_s": 11.363,
+      "i47_synth_ms": 519.8,
+      "i47_dur_s": 13.565
+    },
+    {
+      "backend": "kokoro_erasmian",
+      "voice": "am_adam",
+      "label": "Local Kokoro-82M ONNX Erasmian Male (am_adam)",
+      "i23_synth_ms": 1053.7,
+      "i23_dur_s": 11.832,
+      "i47_synth_ms": 1273.5,
+      "i47_dur_s": 15.159
+    },
+    {
+      "backend": "kokoro_erasmian",
+      "voice": "af_heart",
+      "label": "Local Kokoro-82M ONNX Erasmian Female (af_heart)",
+      "i23_synth_ms": 1001.7,
+      "i23_dur_s": 11.516,
+      "i47_synth_ms": 1366.9,
+      "i47_dur_s": 16.482
+    },
+    {
+      "backend": "google_modern",
+      "voice": "el-GR-Wavenet-B",
+      "label": "Google Cloud Modern Greek (el-GR-Wavenet-B)",
+      "i23_synth_ms": 792.8,
+      "i23_dur_s": 9.072,
+      "i47_synth_ms": 447.5,
+      "i47_dur_s": 10.349
+    },
+    {
+      "backend": "macos_modern",
+      "voice": "Melina",
+      "label": "Local macOS say Modern Greek (Melina)",
+      "i23_synth_ms": 673.5,
+      "i23_dur_s": 7.193,
+      "i47_synth_ms": 681.0,
+      "i47_dur_s": 10.076
+    }
+  ],
+  "canned_floor": {
+    "unattended_ms": 1.25,
+    "post_approval_start_ms": 0.013291137292981148
+  }
+}

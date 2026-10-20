@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "euclid-avatar"
+version = "0.1.0"
+description = "Live Euclid avatar spike for Harvard Extension School MATH E-139 on Zoom"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "google-auth>=2.38.0",
+    "google-genai>=1.0.0",
+    "huggingface-hub>=0.30.0",
+    "mlx-whisper>=0.4.0",
+    "numpy>=2.0.0",
+    "obsws-python>=1.7.0",
+    "onnxruntime>=1.20.0",
+    "pymupdf>=1.24.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.0",
+    "requests>=2.32.0",
+    "sounddevice>=0.5.0",
+    "uvicorn[standard]>=0.32.0",
+    "websockets>=13.0",
+]
+
+[project.scripts]
+euclid-avatar = "euclid_avatar.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/euclid_avatar"]
