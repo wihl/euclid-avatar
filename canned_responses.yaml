@@ -1,0 +1,99 @@
+# Curated MATH E-139 Canned Responses for One-Click Zero-Latency Fallback
+canned_responses:
+  - id: i23_erasmian_enunciation
+    title: "Prop. I.23 Enunciation (Erasmian Master)"
+    question: "Euclid, please state the enunciation of Book I, Proposition 23 in Greek and English."
+    sources:
+      - "Elements I.23"
+      - "euclid-tts/output/euclid-I23-erasmian.wav"
+    tts_backend: "euclid_tts_master"
+    tts_voice: "en-US-Neural2-H (Erasmian)"
+    wav_path: "/Users/wihl/Projects/codex/euclid-tts/output/euclid-I23-erasmian.wav"
+    english: "To construct a rectilinear angle equal to a given rectilinear angle on a given straight-line and at a point on it."
+    greek: "Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι."
+    sentences:
+      - english: "To construct a rectilinear angle equal to a given rectilinear angle on a given straight-line and at a point on it."
+        greek: "Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι."
+
+  - id: i23_modern_enunciation
+    title: "Prop. I.23 Enunciation (Modern Greek Master)"
+    question: "State the enunciation of Proposition I.23 using Modern Greek pronunciation."
+    sources:
+      - "Elements I.23"
+      - "euclid-tts/output/euclid-I23-modern-female.wav"
+    tts_backend: "euclid_tts_master"
+    tts_voice: "el-GR-Wavenet-B (Modern)"
+    wav_path: "/Users/wihl/Projects/codex/euclid-tts/output/euclid-I23-modern-female.wav"
+    english: "To construct a rectilinear angle equal to a given rectilinear angle on a given straight-line and at a point on it."
+    greek: "Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι."
+    sentences:
+      - english: "To construct a rectilinear angle equal to a given rectilinear angle on a given straight-line and at a point on it."
+        greek: "Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι."
+
+  - id: i23_modern_two_sentences
+    title: "Prop. I.23 Enunciation + Ekthesis/Diorismos (Modern 2-Sent Master)"
+    question: "Recite the enunciation, setting-out, and specification of Proposition I.23."
+    sources:
+      - "Elements I.23"
+      - "euclid-tts/output/round-2/reviewed-defaults/euclid-I23-modern-female.wav"
+    tts_backend: "euclid_tts_master"
+    tts_voice: "el-GR-Wavenet-B (Modern 2-Sentence)"
+    wav_path: "/Users/wihl/Projects/codex/euclid-tts/output/round-2/reviewed-defaults/euclid-I23-modern-female.wav"
+    english: "To construct a rectilinear angle equal to a given rectilinear angle on a given straight-line and at a point on it. Let AB be the given straight-line, A the point on it, and DCE the given rectilinear angle; thus it is required to construct on the given straight-line AB and at the point A on it a rectilinear angle equal to the given rectilinear angle DCE."
+    greek: "Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι. Ἔστω ἡ μὲν δοθεῖσα εὐθεῖα ἡ ΑΒ, τὸ δὲ πρὸς αὐτῇ σημεῖον τὸ Α, ἡ δὲ δοθεῖσα γωνία εὐθύγραμμος ἡ ὑπὸ ΔΓΕ· δεῖ δὴ πρὸς τῇ δοθείσῃ εὐθείᾳ τῇ ΑΒ καὶ τῷ πρὸς αὐτῇ σημείῳ τῷ Α τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ τῇ ὑπὸ ΔΓΕ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι."
+    sentences:
+      - english: "To construct a rectilinear angle equal to a given rectilinear angle on a given straight-line and at a point on it."
+        greek: "Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι."
+      - english: "Let AB be the given straight-line, A the point on it, and DCE the given rectilinear angle; thus it is required to construct at point A on AB a rectilinear angle equal to angle DCE."
+        greek: "Ἔστω ἡ μὲν δοθεῖσα εὐθεῖα ἡ ΑΒ, τὸ δὲ πρὸς αὐτῇ σημεῖον τὸ Α, ἡ δὲ δοθεῖσα γωνία εὐθύγραμμος ἡ ὑπὸ ΔΓΕ· δεῖ δὴ πρὸς τῇ δοθείσῃ εὐθείᾳ τῇ ΑΒ καὶ τῷ πρὸς αὐτῇ σημείῳ τῷ Α τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ τῇ ὑπὸ ΔΓΕ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι."
+
+  - id: i23_erasmian_two_sentences
+    title: "Prop. I.23 Enunciation + Ekthesis/Diorismos (Erasmian 2-Sent Master)"
+    question: "Recite the first two sentences of Proposition I.23 in Erasmian pronunciation."
+    sources:
+      - "Elements I.23"
+      - "euclid-tts/output/round-2/reviewed-defaults/euclid-I23-erasmian.wav"
+    tts_backend: "euclid_tts_master"
+    tts_voice: "en-US-Wavenet-F (Erasmian 2-Sentence)"
+    wav_path: "/Users/wihl/Projects/codex/euclid-tts/output/round-2/reviewed-defaults/euclid-I23-erasmian.wav"
+    english: "To construct a rectilinear angle equal to a given rectilinear angle on a given straight-line and at a point on it. Let AB be the given straight-line, A the point on it, and DCE the given rectilinear angle; thus it is required to construct on the given straight-line AB and at the point A on it a rectilinear angle equal to the given rectilinear angle DCE."
+    greek: "Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι. Ἔστω ἡ μὲν δοθεῖσα εὐθεῖα ἡ ΑΒ, τὸ δὲ πρὸς αὐτῇ σημεῖον τὸ Α, ἡ δὲ δοθεῖσα γωνία εὐθύγραμμος ἡ ὑπὸ ΔΓΕ· δεῖ δὴ πρὸς τῇ δοθείσῃ εὐθείᾳ τῇ ΑΒ καὶ τῷ πρὸς αὐτῇ σημείῳ τῷ Α τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ τῇ ὑπὸ ΔΓΕ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι."
+    sentences:
+      - english: "To construct a rectilinear angle equal to a given rectilinear angle on a given straight-line and at a point on it."
+        greek: "Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι."
+      - english: "Let AB be the given straight-line, A the point on it, and DCE the given rectilinear angle; thus it is required to construct at point A on AB a rectilinear angle equal to angle DCE."
+        greek: "Ἔστω ἡ μὲν δοθεῖσα εὐθεῖα ἡ ΑΒ, τὸ δὲ πρὸς αὐτῇ σημεῖον τὸ Α, ἡ δὲ δοθεῖσα γωνία εὐθύγραμμος ἡ ὑπὸ ΔΓΕ· δεῖ δὴ πρὸς τῇ δοθείσῃ εὐθείᾳ τῇ ΑΒ καὶ τῷ πρὸς αὐτῇ σημείῳ τῷ Α τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ τῇ ὑπὸ ΔΓΕ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι."
+
+  - id: prop_i47_pythagorean
+    title: "Prop. I.47 Pythagorean Theorem (Enunciation)"
+    question: "State Proposition I.47, the Pythagorean theorem, in Greek and English."
+    sources:
+      - "Elements I.47"
+      - "COURSE.md"
+    tts_backend: "google_erasmian"
+    tts_voice: "en-US-Neural2-D"
+    wav_path: ".cache/canned/prop_i47_pythagorean.wav"
+    english: "In right-angled triangles, the square on the side subtending the right-angle is equal to the squares on the sides containing the right-angle. Being a theorem rather than a construction problem, its proof concludes with: which very thing it was required to show."
+    greek: "Ἐν τοῖς ὀρθογωνίοις τριγώνοις τὸ ἀπὸ τῆς τὴν ὀρθὴν γωνίαν ὑποτεινούσης πλευρᾶς τετράγωνον ἴσον ἐστὶ τοῖς ἀπὸ τῶν τὴν ὀρθὴν γωνίαν περιεχουσῶν πλευρῶν τετραγώνοις. Θεώρημα γὰρ ὂν τελευτᾷ εἰς τό· ὅπερ ἔδει δεῖξαι."
+    sentences:
+      - english: "In right-angled triangles, the square on the side subtending the right-angle is equal to the squares on the sides containing the right-angle."
+        greek: "Ἐν τοῖς ὀρθογωνίοις τριγώνοις τὸ ἀπὸ τῆς τὴν ὀρθὴν γωνίαν ὑποτεινούσης πλευρᾶς τετράγωνον ἴσον ἐστὶ τοῖς ἀπὸ τῶν τὴν ὀρθὴν γωνίαν περιεχουσῶν πλευρῶν τετραγώνοις."
+      - english: "Being a theorem rather than a construction problem, its proof concludes with: which very thing it was required to show."
+        greek: "Θεώρημα γὰρ ὂν τελευτᾷ εἰς τό· ὅπερ ἔδει δεῖξαι."
+
+  - id: postulate_5_and_i23
+    title: "Postulate 5 & Prop. I.23 in Non-Euclidean Geometry"
+    question: "Does Proposition I.23 depend on Postulate 5, and does it hold in spherical and hyperbolic geometry?"
+    sources:
+      - "projects/2026-project-i23/other-geometries/slides.qmd"
+      - "Elements Book I Definitions & Axioms"
+    tts_backend: "google_erasmian"
+    tts_voice: "en-US-Neural2-D"
+    wav_path: ".cache/canned/postulate_5_and_i23.wav"
+    english: "Proposition I.23 relies only on Proposition I.22 to construct a triangle from three straight-lines and Proposition I.8 for side-side-side congruence, never invoking the fifth postulate before I.29. Therefore, the construction of an equal angle carries over directly to hyperbolic geometry and to sufficiently small triangles on the sphere."
+    greek: "Ἡ κγʹ πρότασις χρῆται μόναις τῇ κβʹ καὶ τῇ ηʹ προτάσει ἄνευ τοῦ πέμπτου αἰτήματος. Διὸ δὴ ἡ τῆς ἴσης γωνίας σύστασις μένει βεβαία καὶ ἐν τῇ ὑπερβολικῇ καὶ ἐν τῇ σφαιρικῇ γεωμετρίᾳ."
+    sentences:
+      - english: "Proposition I.23 relies only on Proposition I.22 to construct a triangle from three straight-lines and Proposition I.8 for side-side-side congruence, never invoking the fifth postulate before I.29."
+        greek: "Ἡ κγʹ πρότασις χρῆται μόναις τῇ κβʹ καὶ τῇ ηʹ προτάσει ἄνευ τοῦ πέμπτου αἰτήματος."
+      - english: "Therefore, the construction of an equal angle carries over directly to hyperbolic geometry and to sufficiently small triangles on the sphere."
+        greek: "Διὸ δὴ ἡ τῆς ἴσης γωνίας σύστασις μένει βεβαία καὶ ἐν τῇ ὑπερβολικῇ καὶ ἐν τῇ σφαιρικῇ γεωμετρίᾳ."

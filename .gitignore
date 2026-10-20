@@ -1,0 +1,17 @@
+# Environment & secrets
+.env
+
+# Virtual environment & caches
+.venv/
+.cache/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Generated audio logs (keep turns.jsonl if desired or ignore WAVs)
+logs/audio/*.wav
+logs/benchmark_inputs/*.wav
+
+# macOS
+.DS_Store
