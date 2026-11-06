@@ -11,12 +11,12 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 
 DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
 DEFAULT_TTS_BACKEND = "google_au_bilingual"
-DEFAULT_TTS_VOICE_ENGLISH = "en-AU-Neural2-D"
-DEFAULT_TTS_VOICE_ERASMIAN = "en-AU-Neural2-D"
+DEFAULT_TTS_VOICE_ENGLISH = "en-AU-Chirp3-HD-Charon"
+DEFAULT_TTS_VOICE_ERASMIAN = "en-AU-Chirp3-HD-Charon"
 DEFAULT_TTS_VOICE_MODERN = "el-GR-Wavenet-B"
 DEFAULT_TTS_VOICE_KOKORO = "bm_george"
-DEFAULT_TTS_RATE_ENGLISH = 0.96
-DEFAULT_TTS_RATE_GREEK = 0.84
+DEFAULT_TTS_RATE_ENGLISH = 0.82
+DEFAULT_TTS_RATE_GREEK = 0.72
 DEFAULT_STT_MODEL = "mlx-community/whisper-large-v3-turbo"
 DEFAULT_AUDIO_INPUT = "BlackHole 2ch"
 DEFAULT_OPERATOR_MIC = "MacBook Pro Microphone"

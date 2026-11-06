@@ -349,32 +349,114 @@ AVATAR_HTML = """<!DOCTYPE html>
     width: 100%;
     height: 670px;
     display: grid;
-    grid-template-columns: 560px 1fr;
-    gap: 36px;
+    grid-template-columns: 540px 1fr;
+    gap: 32px;
     align-items: center;
   }
-  .bust-container {
+  .diagram-card {
     position: relative;
-    width: 560px;
-    height: 600px;
+    width: 540px;
+    height: 630px;
+    background: rgba(11, 16, 26, 0.92);
+    border: 2px solid rgba(229, 196, 103, 0.55);
+    border-radius: 22px;
+    padding: 22px 26px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.75);
+  }
+  .diagram-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid rgba(229, 196, 103, 0.32);
+    padding-bottom: 10px;
+  }
+  .diagram-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #f3d47c;
+    letter-spacing: 0.02em;
+  }
+  .diagram-sub {
+    font-size: 14px;
+    color: #9aa8c2;
+    font-family: -apple-system, sans-serif;
+  }
+  svg.ii13-fig {
+    width: 100%;
+    height: 390px;
+    overflow: visible;
+  }
+  .seg-line {
+    transition: stroke-width 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+  }
+  .seg-line.active-glow {
+    stroke-width: 7px !important;
+    filter: drop-shadow(0 0 12px rgba(243, 212, 124, 0.95));
+  }
+  .pt-node {
+    transition: transform 0.18s ease, filter 0.18s ease;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .pt-node.active-pt {
+    filter: drop-shadow(0 0 12px rgba(243, 212, 124, 1));
+    transform: scale(1.18);
+  }
+  .case-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    background: rgba(18, 26, 42, 0.78);
+    border: 1px solid rgba(229, 196, 103, 0.28);
+    border-radius: 12px;
+    padding: 10px 14px;
+  }
+  .legend-item {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 8px;
+    color: #dce5f5;
   }
-  .aura-ring {
-    position: absolute;
-    width: 480px;
-    height: 480px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(229, 196, 103, 0.28) 0%, rgba(229, 196, 103, 0.06) 55%, transparent 72%);
-    transition: transform 0.04s linear, opacity 0.04s linear;
-    pointer-events: none;
+  .legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
   }
-  svg.euclid-svg {
-    width: 540px;
-    height: 540px;
-    z-index: 2;
-    filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.75));
+  .wave-bar-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 6px;
+  }
+  .wave-label {
+    font-family: -apple-system, sans-serif;
+    font-size: 13px;
+    color: #9aa8c2;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .wave-bars {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 28px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+  .wave-bar {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #f5d97e 0%, #c49733 100%);
+    opacity: 0.45;
+    transition: height 0.05s linear, opacity 0.05s linear;
   }
   .slide-card {
     height: 630px;
@@ -510,64 +592,113 @@ AVATAR_HTML = """<!DOCTYPE html>
     </div>
 
     <div class="main-row">
-      <div class="bust-container">
-        <div class="aura-ring" id="auraRing"></div>
-        <svg class="euclid-svg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+      <div class="diagram-card">
+        <div class="diagram-header">
+          <div>
+            <div class="diagram-title">Elements II.13 · Figure</div>
+            <div class="diagram-sub">Acute-angled △ΑΒΓ with altitude ΑΔ ⊥ ΒΓ</div>
+          </div>
+          <div class="slide-pill" id="activeLettersBadge" style="font-size:15px;">△ ΑΒΓ</div>
+        </div>
+
+        <svg class="ii13-fig" viewBox="0 0 480 370" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="marbleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#f4efe4"/>
-              <stop offset="55%" stop-color="#ddd3c0"/>
-              <stop offset="100%" stop-color="#b5a78f"/>
+            <linearGradient id="acSquareFill" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(243, 212, 124, 0.16)"/>
+              <stop offset="100%" stop-color="rgba(243, 212, 124, 0.04)"/>
             </linearGradient>
-            <linearGradient id="robeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#e5dccb"/>
-              <stop offset="100%" stop-color="#9e9078"/>
-            </linearGradient>
-            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#f5d97e"/>
-              <stop offset="100%" stop-color="#b88c28"/>
+            <linearGradient id="rectFill" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="rgba(86, 211, 100, 0.18)"/>
+              <stop offset="100%" stop-color="rgba(86, 211, 100, 0.05)"/>
             </linearGradient>
           </defs>
 
-          <g id="geoHalo" stroke="url(#goldGrad)" fill="none" opacity="0.55">
-            <circle cx="300" cy="250" r="220" stroke-width="2" stroke-dasharray="8 6"/>
-            <circle cx="300" cy="250" r="190" stroke-width="1.5"/>
-            <polygon points="300,60 464,345 136,345" stroke-width="1.5" opacity="0.6"/>
-            <polygon points="300,440 464,155 136,155" stroke-width="1.2" opacity="0.35"/>
+          <!-- Faint rectangle 2 · ΓΒ · ΒΔ reference band below base ΒΓ -->
+          <rect id="rect-CB-BD" x="72" y="275" width="336" height="46" rx="4"
+                fill="url(#rectFill)" stroke="rgba(86, 211, 100, 0.42)" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <line x1="196" y1="275" x2="196" y2="321" stroke="rgba(86, 211, 100, 0.5)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="240" y="303" text-anchor="middle" fill="#8ce99a" font-size="15" font-family="Palatino, Georgia, serif">
+            τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ (2 · CB · BD)
+          </text>
+
+          <!-- Triangle interior fill -->
+          <polygon points="196,56 72,275 408,275" fill="rgba(56, 139, 253, 0.07)"/>
+
+          <!-- Acute angle arc at Β (72, 275) -->
+          <path d="M 112,275 A 40,40 0 0,0 92,240" fill="none" stroke="#f3d47c" stroke-width="2.2"/>
+          <text x="122" y="262" fill="#f3d47c" font-size="14" font-style="italic">ὀξεῖα</text>
+
+          <!-- Right-angle marker at Δ (196, 275) -->
+          <polyline points="196,257 214,257 214,275" fill="none" stroke="#56d364" stroke-width="2"/>
+
+          <!-- Base ΓΒ (CB) and segments ΒΔ (BD), ΔΓ (DC) -->
+          <line id="seg-CB" class="seg-line" x1="72" y1="275" x2="408" y2="275" stroke="#79c0ff" stroke-width="4.5" stroke-linecap="round"/>
+          <line id="seg-BD" class="seg-line" x1="72" y1="275" x2="196" y2="275" stroke="#56d364" stroke-width="5" stroke-linecap="round"/>
+          <line id="seg-DC" class="seg-line" x1="196" y1="275" x2="408" y2="275" stroke="#79c0ff" stroke-width="4.5" stroke-linecap="round"/>
+
+          <!-- Side ΒΑ (BA) -->
+          <line id="seg-BA" class="seg-line" x1="72" y1="275" x2="196" y2="56" stroke="#79c0ff" stroke-width="4.5" stroke-linecap="round"/>
+
+          <!-- Subtending side ΑΓ (AC) - Nominative subject -->
+          <line id="seg-AC" class="seg-line" x1="196" y1="56" x2="408" y2="275" stroke="#f3d47c" stroke-width="5" stroke-linecap="round"/>
+
+          <!-- Perpendicular ΑΔ (AD) - ἡ κάθετος -->
+          <line id="seg-AD" class="seg-line" x1="196" y1="56" x2="196" y2="275" stroke="#56d364" stroke-width="3.5" stroke-dasharray="7 5" stroke-linecap="round"/>
+
+          <!-- Midpoint segment labels -->
+          <text x="112" y="156" fill="#a5d6ff" font-size="16" font-weight="600">ΒΑ (BA)</text>
+          <text x="316" y="156" fill="#f7df94" font-size="17" font-weight="700">ΑΓ (AC)</text>
+          <text x="206" y="178" fill="#7ee787" font-size="15" font-weight="600">ἡ κάθετος ΑΔ</text>
+          <text x="134" y="294" text-anchor="middle" fill="#7ee787" font-size="15" font-weight="600">ΒΔ (BD)</text>
+          <text x="302" y="294" text-anchor="middle" fill="#a5d6ff" font-size="15" font-weight="600">ΔΓ (DC)</text>
+
+          <!-- Vertex Α (A) -->
+          <g id="pt-A" class="pt-node">
+            <circle cx="196" cy="56" r="16" fill="#172236" stroke="#f3d47c" stroke-width="2.5"/>
+            <text x="196" y="62" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="700">Α</text>
+            <text x="196" y="30" text-anchor="middle" fill="#b7c2d6" font-size="14" font-family="-apple-system,sans-serif">A</text>
           </g>
 
-          <path d="M120,565 L480,565 L450,435 C415,400 365,385 300,385 C235,385 185,400 150,435 Z"
-                fill="url(#robeGrad)" stroke="#7a6d58" stroke-width="3"/>
-          <path d="M165,440 C220,485 300,505 425,430" fill="none" stroke="#887a62" stroke-width="5"/>
-          <path d="M195,495 C255,530 335,535 445,475" fill="none" stroke="#887a62" stroke-width="4"/>
-          <rect x="100" y="555" width="400" height="26" rx="6" fill="url(#goldGrad)"/>
+          <!-- Vertex Β (B) -->
+          <g id="pt-B" class="pt-node">
+            <circle cx="72" cy="275" r="16" fill="#172236" stroke="#79c0ff" stroke-width="2.5"/>
+            <text x="72" y="281" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="700">Β</text>
+            <text x="42" y="280" text-anchor="middle" fill="#b7c2d6" font-size="14" font-family="-apple-system,sans-serif">B</text>
+          </g>
 
-          <rect x="256" y="330" width="88" height="75" rx="20" fill="url(#marbleGrad)"/>
-          <ellipse cx="300" cy="225" rx="102" ry="125" fill="url(#marbleGrad)" stroke="#8c7f6a" stroke-width="2.5"/>
+          <!-- Vertex Γ (C) -->
+          <g id="pt-C" class="pt-node">
+            <circle cx="408" cy="275" r="16" fill="#172236" stroke="#f3d47c" stroke-width="2.5"/>
+            <text x="408" y="281" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="700">Γ</text>
+            <text x="438" y="280" text-anchor="middle" fill="#b7c2d6" font-size="14" font-family="-apple-system,sans-serif">C</text>
+          </g>
 
-          <path d="M195,205 C185,130 235,88 300,88 C365,88 415,130 405,205 C395,165 360,138 300,138 C240,138 205,165 195,205 Z"
-                fill="#d8cebc" stroke="#8c7f6a" stroke-width="2.5"/>
-          <path d="M196,175 Q300,152 404,175" fill="none" stroke="url(#goldGrad)" stroke-width="8"/>
-
-          <path d="M232,202 Q260,192 282,202" fill="none" stroke="#5c5243" stroke-width="5" stroke-linecap="round"/>
-          <path d="M318,202 Q340,192 368,202" fill="none" stroke="#5c5243" stroke-width="5" stroke-linecap="round"/>
-          <ellipse cx="258" cy="218" rx="16" ry="9" fill="#fdfbf7" stroke="#5c5243" stroke-width="2.5"/>
-          <circle cx="258" cy="218" r="5.5" fill="#3b3328"/>
-          <ellipse cx="342" cy="218" rx="16" ry="9" fill="#fdfbf7" stroke="#5c5243" stroke-width="2.5"/>
-          <circle cx="342" cy="218" r="5.5" fill="#3b3328"/>
-
-          <path d="M300,202 L294,262 L310,266" fill="none" stroke="#6e6250" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M242,292 Q272,272 300,285 Q328,272 358,292" fill="none" stroke="#bfb39e" stroke-width="12" stroke-linecap="round"/>
-
-          <g id="jawGroup">
-            <ellipse id="mouthOpening" cx="300" cy="298" rx="22" ry="3" fill="#2b1d19" stroke="#5c4738" stroke-width="2"/>
-            <path d="M204,252 C200,335 242,405 300,412 C358,405 400,335 396,252 C380,282 355,295 332,296 C320,308 280,308 268,296 C245,295 220,282 204,252 Z"
-                  fill="url(#marbleGrad)" stroke="#857862" stroke-width="2.5"/>
-            <path d="M238,315 Q265,365 282,398" fill="none" stroke="#9e9078" stroke-width="3"/>
-            <path d="M300,315 Q300,368 300,406" fill="none" stroke="#9e9078" stroke-width="3"/>
-            <path d="M362,315 Q335,365 318,398" fill="none" stroke="#9e9078" stroke-width="3"/>
+          <!-- Point Δ (D) -->
+          <g id="pt-D" class="pt-node">
+            <circle cx="196" cy="275" r="15" fill="#172236" stroke="#56d364" stroke-width="2.5"/>
+            <text x="196" y="281" text-anchor="middle" fill="#ffffff" font-size="17" font-weight="700">Δ</text>
           </g>
         </svg>
+
+        <div class="case-legend">
+          <div class="legend-item">
+            <span class="legend-swatch" style="background:#f3d47c;"></span>
+            <span><strong>Nom.</strong> τὸ ἀπὸ τῆς ΑΓ — <em>square on AC</em></span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background:#79c0ff;"></span>
+            <span><strong>Gen.</strong> τῶν ἀπὸ τῶν ΓΒ, ΒΑ — <em>than squares on CB, BA</em></span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background:#56d364;"></span>
+            <span><strong>Dat.</strong> τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ — <em>by 2 · rect(CB, BD)</em></span>
+          </div>
+        </div>
+
+        <div class="wave-bar-wrap">
+          <span class="wave-label" id="voiceStatusLabel">Voice Ready</span>
+          <div class="wave-bars" id="waveBars"></div>
+        </div>
       </div>
 
       <div class="slide-card">
@@ -589,19 +720,67 @@ AVATAR_HTML = """<!DOCTYPE html>
   </div>
 
 <script>
-  const jawGroup = document.getElementById('jawGroup');
-  const mouthOpening = document.getElementById('mouthOpening');
-  const auraRing = document.getElementById('auraRing');
-  const geoHalo = document.getElementById('geoHalo');
   const greekSub = document.getElementById('greekSub');
   const englishSub = document.getElementById('englishSub');
   const progressPill = document.getElementById('progressPill');
   const slideTitle = document.getElementById('slideTitle');
   const slideBadge = document.getElementById('slideBadge');
   const slideBody = document.getElementById('slideBody');
+  const activeLettersBadge = document.getElementById('activeLettersBadge');
+  const voiceStatusLabel = document.getElementById('voiceStatusLabel');
+  const waveBarsContainer = document.getElementById('waveBars');
+
+  const NUM_WAVE_BARS = 24;
+  const waveBars = [];
+  for (let i = 0; i < NUM_WAVE_BARS; i++) {
+    const b = document.createElement('div');
+    b.className = 'wave-bar';
+    waveBarsContainer.appendChild(b);
+    waveBars.push(b);
+  }
 
   let currentRms = 0;
   let smoothRms = 0;
+  let wavePhase = 0;
+
+  function highlightDiagramLetters(greekText, engText) {
+    const combined = `${greekText || ''} ${engText || ''}`;
+    const segMap = {
+      'seg-AC': /(ΑΓ|ΓΑ|\bAC\b|\bCA\b)/,
+      'seg-CB': /(ΓΒ|ΒΓ|\bCB\b|\bBC\b)/,
+      'seg-BA': /(ΒΑ|ΑΒ|\bBA\b|\bAB\b)/,
+      'seg-BD': /(ΒΔ|ΔΒ|\bBD\b|\bDB\b)/,
+      'seg-AD': /(ΑΔ|ΔΑ|\bAD\b|\bDA\b|κάθετος|καθέτου)/,
+      'seg-DC': /(ΔΓ|ΓΔ|\bDC\b|\bCD\b)/
+    };
+    const activeLabels = [];
+    Object.entries(segMap).forEach(([id, regex]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (regex.test(combined)) {
+        el.classList.add('active-glow');
+        activeLabels.push(id.replace('seg-', ''));
+      } else {
+        el.classList.remove('active-glow');
+      }
+    });
+    const ptMap = {
+      'pt-A': /[ΑA]/,
+      'pt-B': /[ΒB]/,
+      'pt-C': /[ΓC]/,
+      'pt-D': /[ΔD]/
+    };
+    Object.entries(ptMap).forEach(([id, regex]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (regex.test(greekText || '')) {
+        el.classList.add('active-pt');
+      } else {
+        el.classList.remove('active-pt');
+      }
+    });
+    activeLettersBadge.textContent = activeLabels.length ? `Highlighting: ${activeLabels.join(', ')}` : '△ ΑΒΓ';
+  }
 
   function formatMdInline(str) {
     if (!str) return '';
@@ -639,22 +818,21 @@ AVATAR_HTML = """<!DOCTYPE html>
     slideBody.innerHTML = html;
   }
 
-  function animateAvatar() {
-    smoothRms = smoothRms * 0.65 + currentRms * 0.35;
-    const jawDrop = smoothRms * 18.0;
-    const mouthRy = 2.5 + smoothRms * 14.0;
-    const scale = 1.0 + smoothRms * 0.22;
-    const opacity = 0.35 + smoothRms * 0.65;
-
-    jawGroup.setAttribute('transform', `translate(0, ${jawDrop.toFixed(2)})`);
-    mouthOpening.setAttribute('ry', mouthRy.toFixed(2));
-    auraRing.style.transform = `scale(${scale.toFixed(3)})`;
-    auraRing.style.opacity = opacity.toFixed(2);
-    geoHalo.setAttribute('opacity', (0.45 + smoothRms * 0.5).toFixed(2));
-
-    requestAnimationFrame(animateAvatar);
+  function animateWaveform() {
+    smoothRms = smoothRms * 0.72 + currentRms * 0.28;
+    wavePhase += 0.18;
+    const isSpeaking = smoothRms > 0.015;
+    voiceStatusLabel.textContent = isSpeaking ? 'Speaking · Erasmian Greek / en-AU' : 'Standby · Elements II.13';
+    for (let i = 0; i < NUM_WAVE_BARS; i++) {
+      const centerWeight = 1.0 - Math.abs(i - NUM_WAVE_BARS / 2) / (NUM_WAVE_BARS / 2);
+      const harmonic = Math.abs(Math.sin(wavePhase + i * 0.45));
+      const h = isSpeaking ? Math.max(4, Math.min(28, 4 + smoothRms * 52 * (0.4 + 0.6 * centerWeight) * (0.5 + 0.5 * harmonic))) : 4;
+      waveBars[i].style.height = `${h.toFixed(1)}px`;
+      waveBars[i].style.opacity = isSpeaking ? (0.55 + 0.45 * harmonic).toFixed(2) : '0.32';
+    }
+    requestAnimationFrame(animateWaveform);
   }
-  requestAnimationFrame(animateAvatar);
+  requestAnimationFrame(animateWaveform);
 
   function connectWS() {
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -670,6 +848,7 @@ AVATAR_HTML = """<!DOCTYPE html>
       } else if (msg.type === 'subtitle') {
         greekSub.textContent = msg.greek || '';
         englishSub.textContent = msg.english || '';
+        highlightDiagramLetters(msg.greek || '', msg.english || '');
         if (msg.total_sentences && msg.total_sentences > 0 && msg.speaking) {
           progressPill.style.display = 'block';
           progressPill.textContent = `Speaking ${msg.sentence_index + 1} / ${msg.total_sentences}`;
@@ -680,6 +859,7 @@ AVATAR_HTML = """<!DOCTYPE html>
         slideTitle.textContent = 'Professor Q&A · Elements II.13';
         slideBadge.textContent = 'Live Q&A';
         slideBody.innerHTML = `<div class="slide-row"><div class="slide-row-eng" style="color:#9aa8c2;margin-bottom:8px;">Question: ${msg.turn.transcript || ''}</div><div class="slide-row-greek">${msg.turn.greek || ''}</div><div class="slide-row-eng" style="margin-top:8px;">${msg.turn.english || ''}</div></div>`;
+        highlightDiagramLetters(msg.turn.greek || '', msg.turn.english || '');
       }
     };
     ws.onclose = () => setTimeout(connectWS, 1000);
@@ -947,13 +1127,13 @@ CONTROL_HTML = """<!DOCTYPE html>
 
       <label style="font-size:12px;color:var(--muted);margin-left:6px;">Voice Model:</label>
       <select id="ttsPresetSelect" onchange="updateTTSPreset()">
-        <option value="google_au_bilingual|en-AU-Neural2-D">AU Male + Erasmian IPA · Neural2-D (~300ms)</option>
-        <option value="google_au_bilingual|en-AU-Chirp3-HD-Charon">AU Male + Erasmian IPA · Chirp3-HD Charon</option>
+        <option value="google_au_bilingual|en-AU-Chirp3-HD-Charon">AU Male + Erasmian IPA · Chirp3-HD Charon (Expressive HD, Default)</option>
+        <option value="google_au_bilingual|en-AU-Chirp3-HD-Puck">AU Male + Erasmian IPA · Chirp3-HD Puck (Expressive HD)</option>
         <option value="google_au_bilingual|en-AU-Chirp3-HD-Orus">AU Male + Erasmian IPA · Chirp3-HD Orus</option>
-        <option value="google_au_bilingual|en-AU-Chirp3-HD-Fenrir">AU Male + Erasmian IPA · Chirp3-HD Fenrir</option>
-        <option value="google_au_bilingual|en-AU-News-G">AU Male + Erasmian IPA · News-G (~270ms)</option>
+        <option value="google_au_bilingual|en-AU-Neural2-D">AU Male + Erasmian IPA · Neural2-D (Fast)</option>
         <option value="google_au_bilingual|en-AU-Polyglot-1">AU Male + Erasmian IPA · Polyglot-1</option>
-        <option value="google_erasmian|en-AU-Neural2-D">Pure Erasmian Greek Only · en-AU-Neural2-D</option>
+        <option value="google_au_bilingual|en-AU-News-G">AU Male + Erasmian IPA · News-G</option>
+        <option value="google_erasmian|en-AU-Chirp3-HD-Charon">Pure Erasmian Greek Only · en-AU-Chirp3-HD-Charon</option>
         <option value="kokoro_erasmian|bm_george">Local Kokoro Male · bm_george</option>
       </select>
       <a href="/avatar" target="_blank" style="color:var(--gold);font-size:13px;text-decoration:none;margin-left:4px;">Open /avatar ↗</a>

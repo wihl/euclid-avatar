@@ -1,17 +1,19 @@
 # Group 4 Presentation — Euclid's Elements, Book II, Proposition 13 (The Greek)
 # Source: ~/Projects/Courses/26Fall/mathe139/coursework/projects/2026-project-ii13/greek/slides.qmd & writeup.qmd
 # Speaker 2 (after Connor Pearson's diagram, before Zahid Syed's proof).
-# Voice spec: English spoken in Male Australian accent (en-AU); Greek read in Erasmian Greek (bird-handout-and-class-2026-10-08).
+# Voice spec: English spoken in expressive Male Australian voice (en-AU-Chirp3-HD-Charon);
+#             Greek read at a deliberate, slow pace in Erasmian Greek (bird-handout-and-class-2026-10-08),
+#             with Greek geometric letters (Α, Β, Γ, Δ) recited slowly with pauses between letters.
 
 presentation:
   id: "ii13_greek_presentation"
   title: "Euclid, Elements II.13: The Greek"
   subtitle: "Group 4 · Connor Pearson (Diagram) · Euclid / David Wihl (Greek) · Zahid Syed (Proof)"
   target_duration_seconds: 300
-  voice_english: "en-AU-Neural2-D"
-  voice_greek: "en-AU-Neural2-D"
-  rate_english: 1.12
-  rate_greek: 0.96
+  voice_english: "en-AU-Chirp3-HD-Charon"
+  voice_greek: "en-AU-Chirp3-HD-Charon"
+  rate_english: 0.84
+  rate_greek: 0.72
 
   slides:
     - slide_number: 1
@@ -23,39 +25,48 @@ presentation:
           english: "In acute-angled triangles, the square on the side subtending the acute angle **is less** than the squares on the sides containing the acute angle by twice the rectangle contained by one of the sides around the acute angle, onto which the perpendicular falls, and the straight-line cut off inside by the perpendicular towards the acute angle."
       segments:
         - id: "s1_intro_and_greek"
-          rate: 1.02
+          rate: 0.78
           greek: "Ἐν τοῖς ὀξυγωνίοις τριγώνοις τὸ ἀπὸ τῆς τὴν ὀξεῖαν γωνίαν ὑποτεινούσης πλευρᾶς τετράγωνον ἔλαττόν ἐστι τῶν ἀπὸ τῶν τὴν ὀξεῖαν γωνίαν περιεχουσῶν πλευρῶν τετραγώνων..."
-          english: "Connor has shown you the figure. Here is the enunciation in Greek, one sentence."
+          english: "Connor has shown you the figure. Here is the enunciation in Greek — one single sentence."
           spoken: >
-            Connor has shown you the figure. Here is the enunciation, one sentence.
-            [[break:350ms]]
+            Connor has shown you the figure. Here is the enunciation — one single sentence.
+            [[break:500ms]]
             Ἐν τοῖς ὀξυγωνίοις τριγώνοις,
+            [[break:380ms]]
             τὸ ἀπὸ τῆς τὴν ὀξεῖαν γωνίαν ὑποτεινούσης πλευρᾶς τετράγωνον,
+            [[break:420ms]]
             ἔλαττόν ἐστι,
+            [[break:420ms]]
             τῶν ἀπὸ τῶν τὴν ὀξεῖαν γωνίαν περιεχουσῶν πλευρῶν τετραγώνων,
+            [[break:450ms]]
             τῷ περιεχομένῳ δὶς ὑπό τε μιᾶς τῶν περὶ τὴν ὀξεῖαν γωνίαν,
+            [[break:380ms]]
             ἐφ᾿ ἣν ἡ κάθετος πίπτει,
+            [[break:420ms]]
             καὶ τῆς ἀπολαμβανομένης ἐντὸς ὑπὸ τῆς καθέτου πρὸς τῇ ὀξείᾳ γωνίᾳ.
         - id: "s1_translation"
-          rate: 1.12
+          rate: 0.84
           greek: "ἔλαττόν ἐστι — is less"
-          english: "In acute-angled triangles, the square on the side opposite the acute angle is less than the squares on the two sides containing that angle, by twice the rectangle contained by one of those sides, the one the perpendicular falls on, and the piece the perpendicular cuts off inside, towards the acute angle."
+          english: "In acute-angled triangles, the square on the side opposite the acute angle is less than the squares on the two sides containing that angle, by twice the rectangle contained by one of those sides — the one the perpendicular falls on — and the piece the perpendicular cuts off inside, towards the acute angle."
           spoken: >
-            In acute-angled triangles, the square on the side opposite the acute angle
+            In acute-angled triangles, [[break:250ms]] the square on the side opposite the acute angle
             is less than the squares on the two sides containing that angle,
-            by twice the rectangle contained by one of those sides, the one the perpendicular falls on,
+            [[break:320ms]]
+            by twice the rectangle contained by one of those sides — the one the perpendicular falls on —
             and the piece the perpendicular cuts off inside, towards the acute angle.
         - id: "s1_hinge_and_roadmap"
-          rate: 1.12
+          rate: 0.84
           greek: "ἔλαττόν ἐστι"
-          english: "That is the law of cosines, with no cosine and no minus sign. The two words in bold, ἔλαττόν ἐστι, 'is less,' are the hinge of the sentence. I'm going to pick out two things in this Greek: first, how Greek says 'less than ... by ...' in three cases; second, how Book II names its figures with an article and a preposition, and before long, not even the noun."
+          english: "That is the law of cosines — with no cosine, and no minus sign! The two words in bold, ἔλαττόν ἐστι, 'is less,' are the hinge of the sentence. I'm going to pick out two things in this Greek: first, how Greek says 'less than ... by ...' in three cases; second, how Book II names its figures with an article and a preposition, and before long, not even the noun."
           spoken: >
-            That is the law of cosines, with no cosine and no minus sign.
-            The two words in bold, ἔλαττόν ἐστι, "is less," are the hinge of the sentence.
-            [[break:300ms]]
+            That is the law of cosines — with no cosine, and no minus sign!
+            [[break:320ms]]
+            The two words in bold, [[break:220ms]] ἔλαττόν ἐστι, [[break:220ms]] "is less," are the hinge of the whole sentence.
+            [[break:420ms]]
             I'm going to pick out two things in this Greek.
-            The first is how Greek says "less than ... by ...": three cases, doing the work of an equation.
-            The second is how Book 2 names its figures: an article and a preposition, and before long, not even the noun.
+            First: how Greek says "less than ... by ..." — three grammatical cases, doing the work of an equation!
+            [[break:320ms]]
+            Second: how Book 2 names its figures — with an article and a preposition, and before long, not even the noun.
 
     - slide_number: 2
       id: "slide_2_three_cases"
@@ -73,39 +84,49 @@ presentation:
           english: "by twice the rectangle contained by CB, BD: *dative of degree of difference*"
       segments:
         - id: "s2_spec_reading"
-          rate: 1.05
+          rate: 0.78
           greek: "λέγω, ὅτι τὸ ἀπὸ τῆς ΑΓ τετράγωνον ἔλαττόν ἐστι τῶν ἀπὸ τῶν ΓΒ, ΒΑ τετραγώνων τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ περιεχομένῳ ὀρθογωνίῳ."
           english: "This is the same claim made for Connor's lettered figure: the specification, after λέγω, ὅτι, 'I say that'. Gamma is C and delta is D, as on the figure."
           spoken: >
-            This is the same claim made for Connor's lettered figure: the specification, after λέγω, ὅτι, "I say that".
-            Gamma is C and delta is D, as on the figure:
-            [[break:250ms]]
+            This is the same claim made for Connor's lettered figure — the specification, after [[break:200ms]] λέγω, ὅτι, [[break:200ms]] "I say that".
+            Remember: Gamma is C, and Delta is D, as on the diagram:
+            [[break:450ms]]
             λέγω, ὅτι τὸ ἀπὸ τῆς ΑΓ τετράγωνον,
+            [[break:420ms]]
             ἔλαττόν ἐστι,
+            [[break:420ms]]
             τῶν ἀπὸ τῶν ΓΒ, ΒΑ τετραγώνων,
+            [[break:450ms]]
             τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ περιεχομένῳ ὀρθογωνίῳ.
         - id: "s2_three_cases_walkthrough"
-          rate: 1.12
+          rate: 0.82
           greek: "τὸ ... τετράγωνον (nom.) · τῶν ... τετραγώνων (gen.) · τῷ δὶς ... ὀρθογωνίῳ (dat.)"
           english: "Each line is a different case, and each case has a job: nominative subject, ἔλαττον ('is less'), genitive of comparison ('than'), and dative of degree of difference ('by how much less', with δίς inside the dative phrase)."
           spoken: >
-            Each line is a different case, and each case has a job.
-            The thing compared, the square on A C, τὸ ἀπὸ τῆς ΑΓ τετράγωνον, is nominative; it's the subject.
-            "Is less": ἔλαττον, the comparative of μικρός, "small".
-            What it's less than, the squares on C B and B A, τῶν ἀπὸ τῶν ΓΒ, ΒΑ τετραγώνων, is genitive:
-            the genitive of comparison, which does the work of the English "than".
-            And how much less is dative: τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ περιεχομένῳ ὀρθογωνίῳ,
-            the dative of degree of difference, the same dative that says πέντε ἔτεσι νεώτερος, "five years younger".
-            Here the amount is "twice the rectangle contained by C B and B D"; even "twice", δίς, sits inside the dative phrase.
+            Each line on this slide is a different case — and each case has a distinct job!
+            [[break:350ms]]
+            First, the thing compared — the square on A, C, [[break:220ms]] τὸ ἀπὸ τῆς ΑΓ τετράγωνον [[break:220ms]] — is nominative; it is the subject.
+            [[break:350ms]]
+            Next, "is less": [[break:200ms]] ἔλαττον, [[break:200ms]] the comparative of μικρός, "small".
+            [[break:350ms]]
+            What it is less than — the squares on C, B and B, A, [[break:220ms]] τῶν ἀπὸ τῶν ΓΒ, ΒΑ τετραγώνων [[break:220ms]] — is in the genitive:
+            the genitive of comparison, which does the work of the English word "than".
+            [[break:380ms]]
+            And finally, by how much less is in the dative: [[break:220ms]] τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ περιεχομένῳ ὀρθογωνίῳ [[break:250ms]] —
+            the dative of degree of difference, the very same dative that says [[break:200ms]] πέντε ἔτεσι νεώτερος, [[break:200ms]] "five years younger".
+            Here the amount is "twice the rectangle contained by C, B and B, D" — and even "twice", [[break:180ms]] δίς, [[break:180ms]] sits right inside the dative phrase!
         - id: "s2_equation_and_bamberg"
-          rate: 1.12
+          rate: 0.84
           greek: "AC² = CB² + BA² − 2·CB·BD"
           english: "So nominative, genitive, dative: AC squared equals CB squared plus BA squared, minus twice CB times BD. Euclid doesn't subtract one area from another; he compares two, and names the difference. Professor Bamberg said it about Proposition 3: Greek mathematics has subtraction, but no negative numbers."
           spoken: >
-            So nominative, genitive, dative: A C squared equals C B squared plus B A squared, minus twice C B times B D.
-            That equation is our gloss, not Euclid's.
-            Euclid doesn't subtract one area from another; he compares two, and names the difference.
-            Professor Bamberg said it about Proposition 3: Greek mathematics has subtraction, but no negative numbers.
+            So: nominative, [[break:200ms]] genitive, [[break:200ms]] dative!
+            A, C squared equals C, B squared plus B, A squared, minus twice C, B times B, D.
+            [[break:350ms]]
+            That equation is our modern gloss, not Euclid's.
+            Euclid doesn't subtract one area from another — he compares two magnitudes, and names the difference!
+            [[break:300ms]]
+            As Professor Bamberg pointed out about Proposition 3: Greek mathematics has subtraction, but no negative numbers.
 
     - slide_number: 3
       id: "slide_3_ii12_vs_ii13"
@@ -125,28 +146,34 @@ presentation:
           english: "Def. I.12: ἡ ἐλάσσων ὀρθῆς"
       segments:
         - id: "s3_word_for_word"
-          rate: 1.12
+          rate: 0.83
           greek: "ἀμβλυγωνίοις vs. ὀξυγωνίοις · μεῖζόν ἐστι vs. ἔλαττόν ἐστι · ἐκτός vs. ἐντός"
           english: "The proposition just before ours, 12, is about obtuse-angled triangles, and its enunciation is the same sentence, word for word, with these changes: obtuse for acute, μεῖζον instead of ἔλαττον, and ἐκτός for ἐντός."
           spoken: >
-            The proposition just before ours, 12, is about obtuse-angled triangles,
-            and its enunciation is the same sentence, word for word, with these changes.
-            Obtuse for acute, ἀμβλυγωνίοις τριγώνοις for ὀξυγωνίοις τριγώνοις,
-            and ἀμβλεῖαν or ἀμβλείᾳ for ὀξεῖαν or ὀξείᾳ, wherever the triangle or the angle is mentioned.
-            Greater for less: μεῖζόν ἐστι instead of ἔλαττόν ἐστι.
-            And outside for inside, ἐκτός for ἐντός, because in an obtuse triangle the perpendicular lands outside, on the side extended.
-            Everything else is the same, down to one accent, including the genitive and the dative.
-            So 12 says the square is greater than the other two by twice the rectangle, and 13 says it is less by twice the rectangle.
+            The proposition just before ours — Proposition 12 — is about obtuse-angled triangles,
+            and its enunciation is the exact same sentence, word for word, with just these changes!
+            [[break:380ms]]
+            Obtuse for acute: [[break:200ms]] ἀμβλυγωνίοις τριγώνοις [[break:220ms]] instead of [[break:200ms]] ὀξυγωνίοις τριγώνοις,
+            [[break:320ms]]
+            and [[break:180ms]] ἀμβλεῖαν [[break:180ms]] for [[break:180ms]] ὀξεῖαν [[break:180ms]] wherever the angle is mentioned.
+            [[break:350ms]]
+            Greater for less: [[break:200ms]] μεῖζόν ἐστι [[break:220ms]] instead of [[break:200ms]] ἔλαττόν ἐστι.
+            [[break:350ms]]
+            And outside for inside: [[break:200ms]] ἐκτός [[break:200ms]] instead of [[break:200ms]] ἐντός — because in an obtuse triangle, the perpendicular lands outside, on the side extended!
+            [[break:350ms]]
+            Everything else in the 48-word sentence is identical, including the genitive and the dative.
         - id: "s3_book1_definitions"
-          rate: 1.12
+          rate: 0.83
           greek: "Def. I.11: ἡ μείζων ὀρθῆς · Def. I.12: ἡ ἐλάσσων ὀρθῆς"
           english: "And Euclid set this up in Book 1. The definitions of the obtuse and the acute angle are ἡ μείζων ὀρθῆς and ἡ ἐλάσσων ὀρθῆς, with the same genitive of comparison, and the -σσ- vs. -ττ- spelling."
           spoken: >
-            And Euclid set this up in Book 1.
-            The definitions of the obtuse and the acute angle are "the one greater than a right," ἡ μείζων ὀρθῆς,
-            and "the one less than a right," ἡ ἐλάσσων ὀρθῆς, with the same genitive of comparison.
-            Even the spelling varies: the definition has a double sigma, ἐλάσσων, and our proposition a double tau, ἔλαττον.
-            The course lexicon gives both.
+            And Euclid set this up right at the start of Book 1!
+            [[break:320ms]]
+            The definitions of the obtuse and the acute angle are "the one greater than a right angle," [[break:220ms]] ἡ μείζων ὀρθῆς,
+            [[break:300ms]]
+            and "the one less than a right angle," [[break:220ms]] ἡ ἐλάσσων ὀρθῆς — using the exact same genitive of comparison!
+            [[break:350ms]]
+            Notice the dialectal spelling too: Book 1's definition has a double sigma, [[break:200ms]] ἐλάσσων, [[break:200ms]] while Book 2's proposition has a double tau, [[break:200ms]] ἔλαττον.
 
     - slide_number: 4
       id: "slide_4_article_carries_figure"
@@ -163,27 +190,32 @@ presentation:
           english: "the perpendicular: κάθετος is an adjective; the noun is εὐθεῖα"
       segments:
         - id: "s4_square_and_rectangle"
-          rate: 1.12
+          rate: 0.82
           greek: "τὸ ἀπὸ τῆς ΑΓ τετράγωνον · τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ περιεχομένῳ ὀρθογωνίῳ · περιέχεσθαι λέγεται ὑπὸ δύο εὐθειῶν"
           english: "Second feature. Book 2 is about squares and rectangles, and it has a fixed way of naming them: ἀπό with the genitive ('from') for the square, and ὑπό with the genitive ('by', agent of passive περιεχόμενος) for the rectangle, straight from Definition II.1."
           spoken: >
-            Second feature. Book 2 is about squares and rectangles, and it has a fixed way of naming them.
-            [[break:250ms]]
-            The square is "the square from A C", τὸ ἀπὸ τῆς ΑΓ τετράγωνον, with ἀπό and the genitive: the square is drawn up from its side.
-            The rectangle is "the rectangle contained by C B and B D", τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ περιεχομένῳ ὀρθογωνίῳ,
-            with ὑπό and the genitive, "by", the preposition for the agent of a passive verb,
-            and the passive verb is περιεχόμενος, "being contained".
-            That phrase comes straight from the first definition of Book 2:
-            a rectangle περιέχεσθαι λέγεται ὑπὸ δύο εὐθειῶν, "is said to be contained by" the two straight lines at its right angle.
+            Now for the second grammatical feature.
+            Book 2 is all about squares and rectangles, and it has a fixed formula for naming them!
+            [[break:380ms]]
+            A square is "the square from A, C" — [[break:220ms]] τὸ ἀπὸ τῆς ΑΓ τετράγωνον [[break:250ms]] — using [[break:180ms]] ἀπό [[break:180ms]] with the genitive: the square is drawn up from its side.
+            [[break:380ms]]
+            A rectangle is "the rectangle contained by C, B and B, D" — [[break:220ms]] τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ περιεχομένῳ ὀρθογωνίῳ [[break:250ms]] —
+            using [[break:180ms]] ὑπό [[break:180ms]] with the genitive, "by", the preposition for the agent of a passive participle: [[break:200ms]] περιεχόμενος, "being contained".
+            [[break:380ms]]
+            That formula comes straight from the first definition of Book 2:
+            a rectangle [[break:200ms]] περιέχεσθαι λέγεται ὑπὸ δύο εὐθειῶν [[break:220ms]] — "is said to be contained by" the two straight lines at its right angle.
         - id: "s4_perpendicular"
-          rate: 1.12
+          rate: 0.83
           greek: "ἡ κάθετος (εὐθεῖα)"
           english: "The perpendicular works the same way. κάθετος is an adjective; Book 1's definition applies it to εὐθεῖα, so 'the perpendicular' is really 'the perpendicular straight line', and the article ἡ is feminine because the missing noun is."
           spoken: >
-            The perpendicular works the same way.
-            κάθετος is an adjective; Book 1's definition applies it to a straight line, εὐθεῖα,
-            so ἡ κάθετος, "the perpendicular", is really "the perpendicular straight line",
-            and the article ἡ is feminine because the missing noun is.
+            The perpendicular works the exact same way!
+            [[break:300ms]]
+            In Greek, [[break:180ms]] κάθετος [[break:180ms]] is a two-ending adjective.
+            Book 1's definition applies it to a straight line, [[break:200ms]] εὐθεῖα.
+            [[break:300ms]]
+            So [[break:200ms]] ἡ κάθετος, [[break:200ms]] "the perpendicular", is really "the perpendicular straight line" —
+            and the article [[break:180ms]] ἡ [[break:180ms]] is feminine because the understood noun [[break:180ms]] εὐθεῖα [[break:180ms]] is feminine!
 
     - slide_number: 5
       id: "slide_5_nouns_drop_out"
@@ -200,37 +232,47 @@ presentation:
           english: "Which is the very thing it was required to show."
       segments:
         - id: "s5_comparison_of_two_steps"
-          rate: 1.10
+          rate: 0.81
           greek: "τὰ ἄρα ἀπὸ τῶν ΓΒ, ΒΔ τετράγωνα ἴσα ἐστὶ τῷ τε δὶς ὑπὸ τῶν ΓΒ, ΒΔ περιεχομένῳ ὀρθογωνίῳ … vs. τὰ ἄρα ἀπὸ τῶν ΓΒ, ΒΑ ἴσα ἐστὶ τῷ τε ἀπὸ τῆς ΑΓ καὶ τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ·"
           english: "Once the convention is set, Euclid stops spelling it out. In the first step, the nouns are there: τετράγωνα, ὀρθογωνίῳ. In the later step, they're gone: with neuter article and ἀπό it's a square; with ὑπό it's a rectangle."
           spoken: >
-            Once the convention is set, Euclid stops spelling it out.
-            Here are two sentences from the proof with the same shape: "the squares on ... are equal to twice the rectangle ...".
-            In the first, the nouns are there:
-            τὰ ἄρα ἀπὸ τῶν ΓΒ, ΒΔ τετράγωνα, ἴσα ἐστὶ τῷ τε δὶς ὑπὸ τῶν ΓΒ, ΒΔ περιεχομένῳ ὀρθογωνίῳ.
-            In the second, they're gone:
-            τὰ ἄρα ἀπὸ τῶν ΓΒ, ΒΑ, ἴσα ἐστὶ τῷ τε ἀπὸ τῆς ΑΓ καὶ τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ.
-            "The from-C B-and-B A are equal to the from-A C and to twice the by-C B-B D."
-            Greek lets an article make a noun out of an adjective, and here out of a phrase, and the gender of the article tells you what's understood.
-            Here the article is neuter, and only two neuter nouns are in play: with ἀπό it's a square, with ὑπό it's a rectangle.
+            Once that convention is established, Euclid stops spelling the nouns out!
+            Compare these two sentences from the proof.
+            [[break:380ms]]
+            In the first step, the nouns are stated explicitly:
+            [[break:300ms]]
+            τὰ ἄρα ἀπὸ τῶν ΓΒ, ΒΔ τετράγωνα,
+            [[break:350ms]]
+            ἴσα ἐστὶ τῷ τε δὶς ὑπὸ τῶν ΓΒ, ΒΔ περιεχομένῳ ὀρθογωνίῳ.
+            [[break:420ms]]
+            In the later step, the nouns are completely gone:
+            [[break:300ms]]
+            τὰ ἄρα ἀπὸ τῶν ΓΒ, ΒΑ,
+            [[break:350ms]]
+            ἴσα ἐστὶ τῷ τε ἀπὸ τῆς ΑΓ καὶ τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ.
+            [[break:400ms]]
+            Literally: "the from C, B and B, A are equal to the from A, C, and to twice the by C, B, B, D."
+            Because the article is neuter, the preposition alone tells you the figure: with [[break:180ms]] ἀπό [[break:180ms]] it is a square; with [[break:180ms]] ὑπό [[break:180ms]] it is a rectangle!
         - id: "s5_second_half_and_copula"
-          rate: 1.12
+          rate: 0.82
           greek: "τοῖς μὲν ἀπὸ τῶν ΒΔ, ΔΑ ἴσον τὸ ἀπὸ τῆς ΑΒ"
           english: "In the second half of the proof, from ἀλλά, every square and rectangle is named this way, until the last sentence puts most of the nouns back. Sometimes even the verb goes: τοῖς μὲν ἀπὸ τῶν ΒΔ, ΔΑ ἴσον τὸ ἀπὸ τῆς ΑΒ."
           spoken: >
-            In the second half of the proof, from ἀλλά, "but", every square and rectangle is named this way,
-            until the last sentence restates the claim and puts most of the nouns back.
-            The enunciation does it too: its rectangle is just τῷ περιεχομένῳ, "the contained-by".
-            Sometimes even the verb goes:
+            In fact, in the second half of the proof — starting from [[break:180ms]] ἀλλά, [[break:180ms]] "but" — all seven figure phrases drop the noun!
+            [[break:350ms]]
+            Sometimes even the verb "is" drops out:
+            [[break:300ms]]
             τοῖς μὲν ἀπὸ τῶν ΒΔ, ΔΑ ἴσον τὸ ἀπὸ τῆς ΑΒ —
-            "the from-A B, equal to the from-B D, D A."
-            Fitzpatrick's English has to put the missing words back in parentheses, "the (square) on A B".
+            [[break:320ms]]
+            "to the from B, D and D, A, equal the from A, B."
+            Fitzpatrick's English translation has to put the missing words back in parentheses!
         - id: "s5_handoff_to_zahid"
-          rate: 1.06
+          rate: 0.82
           greek: "ὅπερ ἔδει δεῖξαι"
           english: "So the two features meet in that dative: less by twice the rectangle, with the rectangle left for you to supply. Why it's less by exactly that much is Zahid's. ὅπερ ἔδει δεῖξαι — over to Zahid."
           spoken: >
-            So the two features meet in that dative: less by twice the rectangle, with the rectangle left for you to supply.
-            Why it's less by exactly that much is Zahid's.
-            [[break:300ms]]
-            ὅπερ ἔδει δεῖξαι — over to Zahid.
+            So our two grammatical features meet right in that dative phrase: "less by twice the rectangle" — with the noun for rectangle left for the reader to supply!
+            [[break:380ms]]
+            Why it is less by that exact amount is Zahid's part of the presentation.
+            [[break:380ms]]
+            ὅπερ ἔδει δεῖξαι [[break:300ms]] — over to you, Zahid!

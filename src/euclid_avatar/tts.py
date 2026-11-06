@@ -295,31 +295,32 @@ LEXICON: dict[str, str] = {
 }
 
 # 2. All 24 Greek uppercase letters for geometric point labels (Α–Ω)
+# Uses elongated vowels and syllable boundaries so geometric labels (ΑΓ, ΓΒ, ΒΑ, ΒΔ) are recited slowly and distinctly.
 ERASMIAN_LETTERS: dict[str, str] = {
-    "Α": "ˈɑlfɑ",
-    "Β": "ˈbItɑ",
-    "Γ": "ˈɡɑmɑ",
-    "Δ": "ˈdɛltɑ",
-    "Ε": "ˈɛpsɪlɔn",
-    "Ζ": "ˈzItɑ",
-    "Η": "ˈItɑ",
-    "Θ": "ˈθItɑ",
-    "Ι": "ɪˈOtɑ",
-    "Κ": "ˈkɑpɑ",
-    "Λ": "ˈlɑmdɑ",
+    "Α": "ˈɑːl.fɑː",
+    "Β": "ˈbI.tɑː",
+    "Γ": "ˈɡɑːm.mɑː",
+    "Δ": "ˈdɛl.tɑː",
+    "Ε": "ˈɛp.sɪ.lɔn",
+    "Ζ": "ˈzI.tɑː",
+    "Η": "ˈI.tɑː",
+    "Θ": "ˈθI.tɑː",
+    "Ι": "ɪˈO.tɑː",
+    "Κ": "ˈkɑːp.pɑː",
+    "Λ": "ˈlɑːm.dɑː",
     "Μ": "ˈmy",
     "Ν": "ˈny",
     "Ξ": "ˈksA",
-    "Ο": "ˈɔmɪkɹɔn",
+    "Ο": "ˈɔ.mɪ.kɹɔn",
     "Π": "ˈpA",
     "Ρ": "ˈɹO",
-    "Σ": "ˈsɪɡmɑ",
+    "Σ": "ˈsɪɡ.mɑː",
     "Τ": "ˈtW",
-    "Υ": "ˈypsɪlɔn",
+    "Υ": "ˈyp.sɪ.lɔn",
     "Φ": "ˈfA",
     "Χ": "ˈxA",
     "Ψ": "ˈpsA",
-    "Ω": "Oˈmɛɡɑ",
+    "Ω": "Oˈmɛ.ɡɑː",
 }
 
 MODERN_LETTERS: dict[str, str] = {
@@ -418,8 +419,8 @@ OPENING_GROUPS = [
 ]
 
 SPEECH_LEVEL_FILTER = (
-    "acompressor=threshold=0.063096:ratio=2:attack=5:release=80:"
-    "makeup=1.995262:detection=rms,"
+    "acompressor=threshold=0.158489:ratio=1.25:attack=45:release=350:"
+    "makeup=1.15:detection=rms,"
     "alimiter=limit=0.89:attack=5:release=50:level=0:latency=1"
 )
 
@@ -671,9 +672,18 @@ def engine_phonemes(phonemes: str, backend: str, voice: str = "") -> str:
     return re.sub(r"ɔ(?!ɪ)", "ɔː", result.replace("ɑ", "ɑː"))
 
 
-def erasmian_ssml_words(text: str, voice: str = "en-AU-Neural2-D") -> str:
+GREEK_LETTER_PRE_POST_BREAK_MS = 220
+GREEK_LETTER_INTER_BREAK_MS = 320
+GREEK_LETTER_CLAUSE_MAX_RATE = 0.75
+PURE_GREEK_WITH_LETTERS_MAX_RATE = 0.70
+
+
+def erasmian_ssml_words(
+    text: str, voice: str = "en-AU-Chirp3-HD-Charon"
+) -> str:
     """Wrap each Greek word or geometric letter in an IPA <phoneme> tag for Google Cloud TTS."""
     text = sanitize_greek_text(text)
+    is_chirp = "Chirp3-HD" in voice
 
     def tag(label: str, phonemes: str) -> str:
         eng_ph = engine_phonemes(phonemes, "google_cloud", voice=voice)
@@ -685,10 +695,22 @@ def erasmian_ssml_words(text: str, voice: str = "en-AU-Neural2-D") -> str:
     def word(match: re.Match[str]) -> str:
         token = match.group()
         if re.fullmatch(r"[Α-Ω]+", token):
-            return " ".join(
+            letter_tags = [
                 tag(c, ERASMIAN_LETTERS.get(c, erasmian(c))) for c in token
-            )
-        return tag(token, erasmian(token))
+            ]
+            if is_chirp:
+                # Chirp3-HD stretches <break/> tags inside <phoneme> sequences into 1.5-2s gaps;
+                # space-separated elongated IPA phonemes ("ˈɑːl.fɑː" "ˈɡɑːm.mɑː") at rate 0.72-0.75
+                # give slow, distinct recitation with natural intonation.
+                return " ".join(letter_tags)
+            inter_break = f'<break time="{GREEK_LETTER_INTER_BREAK_MS}ms"/>'
+            inner = f'<prosody rate="70%">{inter_break.join(letter_tags)}</prosody>'
+            bound_break = f'<break time="{GREEK_LETTER_PRE_POST_BREAK_MS}ms"/>'
+            return f"{bound_break}{inner}{bound_break}"
+        tagged = tag(token, erasmian(token))
+        if not is_chirp:
+            return f'<prosody rate="84%">{tagged}</prosody>'
+        return tagged
 
     parts: list[str] = []
     position = 0
@@ -700,8 +722,27 @@ def erasmian_ssml_words(text: str, voice: str = "en-AU-Neural2-D") -> str:
 
 
 CHIRP_MAX_GREEK_WORDS_PER_CALL = 10
-CHIRP_COMMA_PAUSE_S = 0.26
-CHIRP_SECTION_PAUSE_S = 0.40
+CHIRP_COMMA_PAUSE_S = 0.34
+CHIRP_SECTION_PAUSE_S = 0.50
+MAX_GOOGLE_SSML_BYTES = 4500
+
+
+def _clause_speaking_rate(
+    clause_text: str, english_rate: float, greek_rate: float
+) -> float:
+    """Select an unhurried speaking rate per clause, slowing down for Greek & geometric letters."""
+    greek_words = len(WORD_RE.findall(clause_text))
+    english_words = len(re.findall(r"[A-Za-z]{2,}", clause_text))
+    has_letters = bool(LETTERS_RE.search(clause_text))
+    if greek_words > 0 and english_words == 0:
+        if has_letters:
+            return min(greek_rate, PURE_GREEK_WITH_LETTERS_MAX_RATE)
+        return greek_rate
+    if greek_words >= english_words and greek_words >= 2:
+        return greek_rate
+    if has_letters:
+        return min(english_rate, GREEK_LETTER_CLAUSE_MAX_RATE)
+    return english_rate
 
 
 def _parse_break_seconds(duration_str: str) -> float:
@@ -1174,24 +1215,37 @@ class GreekTTSAdapter:
         t0 = time.perf_counter()
         active_voice = voice or self.cfg.tts_voice_english
         active_lang = _voice_language_code(active_voice, "en-AU")
-        has_english_words = bool(re.search(r"[A-Za-z]{2,}", spoken_text))
-        default_rate = (
-            self.cfg.tts_rate_english if has_english_words else self.cfg.tts_rate
+        eng_rate = rate if rate is not None else self.cfg.tts_rate_english
+        grk_rate = (
+            min(rate, self.cfg.tts_rate)
+            if rate is not None
+            else self.cfg.tts_rate
         )
-        active_rate = rate if rate is not None else default_rate
+        active_rate = _clause_speaking_rate(spoken_text, eng_rate, grk_rate)
 
-        use_chirp_split = (
-            "Chirp3-HD" in active_voice
-            and len(WORD_RE.findall(spoken_text)) > CHIRP_MAX_GREEK_WORDS_PER_CALL
+        full_ssml = bilingual_ssml(spoken_text, voice=active_voice)
+        use_clause_split = (
+            len(full_ssml.encode("utf-8")) > MAX_GOOGLE_SSML_BYTES
+            or (
+                "Chirp3-HD" in active_voice
+                and (
+                    len(WORD_RE.findall(spoken_text))
+                    > CHIRP_MAX_GREEK_WORDS_PER_CALL
+                    or bool(BREAK_MARKER_RE.search(spoken_text))
+                )
+            )
         )
-        if use_chirp_split:
+        if use_clause_split:
             clips: list[np.ndarray] = []
             for clause_text, pause_s in _split_bilingual_clauses_for_chirp(
                 spoken_text
             ):
+                clause_rate = _clause_speaking_rate(
+                    clause_text, eng_rate, grk_rate
+                )
                 clause_ssml = bilingual_ssml(clause_text, voice=active_voice)
                 clip = self._google_synthesize_ssml(
-                    clause_ssml, active_voice, active_lang, active_rate
+                    clause_ssml, active_voice, active_lang, clause_rate
                 )
                 clips.append(clip)
                 if pause_s > 0:
@@ -1206,23 +1260,28 @@ class GreekTTSAdapter:
                 else np.zeros(int(0.1 * SAMPLE_RATE), dtype=np.float32)
             )
         else:
-            ssml = bilingual_ssml(spoken_text, voice=active_voice)
             try:
                 pcm = self._google_synthesize_ssml(
-                    ssml, active_voice, active_lang, active_rate
+                    full_ssml, active_voice, active_lang, active_rate
                 )
             except RuntimeError as exc:
-                if "sentences that are too long" not in str(exc):
+                if (
+                    "sentences that are too long" not in str(exc)
+                    and "longer than the limit" not in str(exc)
+                ):
                     raise
                 clips = []
                 for clause_text, pause_s in _split_bilingual_clauses_for_chirp(
                     spoken_text
                 ):
+                    clause_rate = _clause_speaking_rate(
+                        clause_text, eng_rate, grk_rate
+                    )
                     clause_ssml = bilingual_ssml(
                         clause_text, voice=active_voice
                     )
                     clip = self._google_synthesize_ssml(
-                        clause_ssml, active_voice, active_lang, active_rate
+                        clause_ssml, active_voice, active_lang, clause_rate
                     )
                     clips.append(clip)
                     if pause_s > 0:

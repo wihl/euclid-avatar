@@ -5,9 +5,9 @@ Live "Euclid of Alexandria" presentation and Q&A avatar pipeline for Harvard Ext
 In a live class session on Zoom:
 1. **Prepared 5-Minute Presentation Mode (Book II, Proposition 13 Greek Section):**
    - Delivers David Wihl's 5-slide Greek presentation (`2026-project-ii13/greek/slides.qmd` and `writeup.qmd`, encoded in [`presentation_ii13.yaml`](presentation_ii13.yaml)).
-   - **Male Australian English (`en-AU`) + Erasmian Ancient Greek (`bird-handout-and-class-2026-10-08`):** Speaks all English narration in a natural male Australian accent (`en-AU-Neural2-D` or `en-AU-Chirp3-HD-Charon`) and seamlessly switches to Erasmian Ancient Greek via locale-calibrated IPA `<phoneme>` tags inside the exact same voice (`google_au_bilingual`).
-   - **Zero-latency playback:** All 5 slides (13 segments, **`309.1 s` / `5.15 min`** with `en-AU-Neural2-D`) are pre-rendered into 24 kHz mono WAV in `.cache/presentation_ii13/` and `logs/audio/presentation_ii13_full_en-AU-Neural2-D.wav`.
-   - Synchronizes slide cards, bullet highlights, dual Greek/English subtitles, and the 60 Hz RMS-animated classical bust of Euclid in `/avatar` (`1920x1080` OBS Browser Source) and `/control`.
+   - **Male Australian English (`en-AU`) + Erasmian Ancient Greek (`bird-handout-and-class-2026-10-08`):** Speaks all English narration in an expressive male Australian accent (`en-AU-Chirp3-HD-Charon`, Google Cloud's latest generative HD voice, or `en-AU-Neural2-D`) and seamlessly switches to Erasmian Ancient Greek via locale-calibrated IPA `<phoneme>` tags inside the exact same voice (`google_au_bilingual`), with slow, unhurried recitation of Greek geometric letters (`Α, Β, Γ, Δ`).
+   - **Zero-latency playback:** All 5 slides (13 segments) are pre-rendered into 24 kHz mono WAV in `.cache/presentation_ii13/` and `logs/audio/presentation_ii13_full_en-AU-Chirp3-HD-Charon.wav`.
+   - **Clean Geometric & Slide Display (`/avatar`, `1920x1080`):** Synchronizes the interactive **Proposition II.13 geometric diagram ($\triangle \mathrm{AB\Gamma}$ with altitude $\mathrm{A\Delta}$)** — dynamically highlighting segments (`ΑΓ`, `ΓΒ`, `ΒΑ`, `ΒΔ`, `ΑΔ`, `ΔΓ`) and vertices (`Α, Β, Γ, Δ`) as they are spoken — with the slide cards, bullet highlights, dual Greek/English subtitles, and a 24-bar acoustic voice waveform in `/avatar` and `/control` (no wooden cartoon avatar bust).
 2. **Live Professor Q&A Mode (Professors Paul Bamberg & Graeme Bird):**
    - Captures spoken questions from the Zoom call via `BlackHole 2ch` (or manual text / operator mic override).
    - Local Apple Silicon STT (`mlx-whisper`, pre-warmed in Metal RAM) transcribes the question in **`~120–158 ms`**.
@@ -50,12 +50,12 @@ Documented variables in `.env.example`:
 | `EUCLID_TTS_PATH` | `~/Projects/codex/euclid-tts` | Read-only path to `euclid-tts` (for Kokoro ONNX cache & pronunciation reference) |
 | `PRESENTATION_FILE` | `presentation_ii13.yaml` | 5-slide / 13-segment Book II, Proposition 13 Greek presentation script |
 | `TTS_BACKEND` | `google_au_bilingual` | `google_au_bilingual` (Male AU English + Erasmian Greek IPA), `google_erasmian`, `kokoro_erasmian`, `google_modern`, or `macos_modern` |
-| `TTS_VOICE_ENGLISH` | `en-AU-Neural2-D` | Male Australian voice (`en-AU-Neural2-D`, `en-AU-Chirp3-HD-Charon`, `en-AU-Chirp3-HD-Orus`, `en-AU-News-G`, `en-AU-Polyglot-1`) |
-| `TTS_VOICE_ERASMIAN` | `en-AU-Neural2-D` | Erasmian IPA voice (`en-AU-Neural2-D`, `en-AU-Chirp3-HD-Charon`, `en-US-Chirp3-HD-Charon`, `en-US-Studio-Q`) |
+| `TTS_VOICE_ENGLISH` | `en-AU-Chirp3-HD-Charon` | Male Australian voice (`en-AU-Chirp3-HD-Charon`, `en-AU-Chirp3-HD-Orus`, `en-AU-Chirp3-HD-Fenrir`, `en-AU-Neural2-D`, `en-AU-Polyglot-1`) |
+| `TTS_VOICE_ERASMIAN` | `en-AU-Chirp3-HD-Charon` | Erasmian IPA voice (`en-AU-Chirp3-HD-Charon`, `en-AU-Neural2-D`, `en-US-Chirp3-HD-Charon`, `en-US-Studio-Q`) |
 | `TTS_VOICE_MODERN` | `el-GR-Wavenet-B` | Google Modern Greek voice (`el-GR-Wavenet-B`) |
 | `TTS_VOICE_KOKORO` | `bm_george` | Local Kokoro-82M ONNX male voice (`bm_george`, `am_adam`, `af_heart`) |
-| `TTS_RATE_ENGLISH` | `0.96` | Speaking rate for Male Australian English narration |
-| `TTS_RATE` | `0.84` | Speaking rate for pure Erasmian Greek clauses |
+| `TTS_RATE_ENGLISH` | `0.82` | Speaking rate for Male Australian English narration |
+| `TTS_RATE` | `0.72` | Speaking rate for pure Erasmian Greek clauses and Greek geometric letters |
 | `TTS_LEVEL_SPEECH` | `true` | Apply `euclid-tts` 2:1 gentle RMS compression & `-1 dBFS` peak limiting |
 | `STT_MODEL` | `mlx-community/whisper-large-v3-turbo` | Local Apple Silicon MLX Whisper model (`whisper-large-v3-turbo`) |
 | `AUDIO_INPUT_DEVICE` | `BlackHole 2ch` | CoreAudio input device carrying Zoom class audio into capture |
