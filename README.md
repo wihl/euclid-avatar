@@ -88,7 +88,7 @@ flowchart LR
     BH16["BlackHole 16ch<br/>(Virtual Mic Bus)"]
   end
 
-  subgraph Pipeline["euclid-avatar (127.0.0.1:8765)"]
+  subgraph Pipeline["euclid-avatar (127.0.0.1:8787)"]
     Pres["5-Min II.13 Presentation Deck<br/>(Pre-rendered 5 Slides / 13 Segs)"]
     Cap["Manual Capture + MLX Whisper STT"]
     RAG["SQLite FTS5 II.13 RAG + Gemini 3.5"]
@@ -149,7 +149,7 @@ Remember that **`OBS Virtual Camera` transmits video only**; Zoom always listens
    - Open `Edit -> Advanced Audio Properties` and set the physical microphone's **Audio Monitoring** to **`Monitor and Output`**.
 4. **Create Scene 2: `Euclid` (Avatar Browser Source + Euclid's Voice):**
    - Add a **Browser** source:
-     - **URL:** `http://127.0.0.1:8765/avatar`
+     - **URL:** `http://127.0.0.1:8787/avatar`
      - **Width:** `1920`
      - **Height:** `1080`
      - **Custom FPS:** `60`
@@ -203,9 +203,9 @@ Runs 10 representative Professor Q&A questions on Book II, Proposition 13 (`q01_
 ```bash
 .venv/bin/python -m euclid_avatar serve
 ```
-- **Operator Control Window:** [`http://127.0.0.1:8765/control`](http://127.0.0.1:8765/control)
+- **Operator Control Window:** [`http://127.0.0.1:8787/control`](http://127.0.0.1:8787/control)
   - **5-Minute Presentation Deck Controls:** Click **▶ Play All (`5:09`)** to deliver the full 5-slide Greek presentation, **▶ Play Slide** to deliver a single slide (`Slide 1`–`Slide 5`), or **`P`** to **Pause / Resume** (`[ / ]` to step between slides).
   - **Live Professor Q&A Controls:** Hold/toggle **`Space`** (or click **🎙️ Start Capture**) to capture a spoken question from Paul Bamberg or Graeme Bird, or type a question in the manual override box.
   - Review the transcript, retrieved `2026-project-ii13` / `2026-greek-07` citations, spoken Australian English + Greek text, and polytonic Greek quotation while background pre-synthesis runs (`Synthesizing 1/2...` -> `Ready`).
   - Press **`A`** (or click **✅ Approve & Speak**) to speak immediately (`< 0.2 ms`), **`R`** to **Regenerate**, **`Esc`** to **Discard**, or click any of the **5 Prepared II.13 Q&A Answers** (`ii13_verbs`, `ii13_accents_adjectives`, `ii13_misprints`, `ii13_proof_ii7_i47`, `ii13_non_euclidean`) for instant (`~1.1 ms`) playback.
-- **OBS Browser Source (`1920x1080`):** [`http://127.0.0.1:8765/avatar`](http://127.0.0.1:8765/avatar)
+- **OBS Browser Source (`1920x1080`):** [`http://127.0.0.1:8787/avatar`](http://127.0.0.1:8787/avatar)

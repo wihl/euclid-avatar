@@ -4,16 +4,45 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import socket
 import sys
 
 import uvicorn
 
 from .benchmark import run_benchmark_suite, run_single_dry_run
-from .config import load_config
+from .config import DEFAULT_PORT, load_config
 from .devices import format_devices_report
 from .index import build_or_update_index
 from .pipeline import EuclidPipeline
 from .server import create_app
+
+MAX_PORT_PROBE_ATTEMPTS = 20
+
+
+def _is_port_available(host: str, port: int) -> bool:
+    """Return True if (host, port) can be bound without conflict."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            sock.bind((host, port))
+            return True
+        except OSError:
+            return False
+
+
+def _select_available_port(host: str, preferred_port: int) -> int:
+    """Return preferred_port if free, or the next available port starting at DEFAULT_PORT."""
+    if _is_port_available(host, preferred_port):
+        return preferred_port
+    candidates = [DEFAULT_PORT] + [
+        DEFAULT_PORT + offset for offset in range(1, MAX_PORT_PROBE_ATTEMPTS)
+    ]
+    for candidate in candidates:
+        if candidate != preferred_port and _is_port_available(host, candidate):
+            return candidate
+    raise RuntimeError(
+        f"Could not find an available local TCP port near {preferred_port}."
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -216,7 +245,15 @@ def main(argv: list[str] | None = None) -> int:
 
     if cmd == "serve":
         host = getattr(args, "host", None) or cfg.host
-        port = getattr(args, "port", None) or cfg.port
+        requested_port = getattr(args, "port", None) or cfg.port
+        port = _select_available_port(host, requested_port)
+        if port != requested_port:
+            print(
+                f"   [Note] Port {requested_port} is already in use by another process; "
+                f"binding to {host}:{port} instead."
+            )
+        cfg.host = host
+        cfg.port = port
         print("1. Checking course index (.cache/course_index.sqlite)...")
         stats = build_or_update_index(cfg, force=False)
         print(

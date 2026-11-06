@@ -35,12 +35,12 @@ Use this step-by-step checklist to verify the **5-Minute Prepared Greek Presenta
   ```bash
   .venv/bin/python -m euclid_avatar serve
   ```
-  - Open [`http://127.0.0.1:8765/control`](http://127.0.0.1:8765/control) in your browser on the MacBook.
+  - Open [`http://127.0.0.1:8787/control`](http://127.0.0.1:8787/control) in your browser on the MacBook.
   - Verify the **5-Minute Prepared Presentation (`Elements` II.13)** panel displays all 5 slides (`Slide 1`–`Slide 5`, `309.1 s`) and the **⚡ One-Click Prepared II.13 Q&A Answers** panel lists all 5 curated Professor Q&A responses.
 - [ ] **5. Start OBS Studio & Virtual Camera BEFORE launching Zoom:**
   - Verify `OBS -> Settings -> Audio -> Advanced -> Monitoring Device` is set to **`BlackHole 16ch`**.
   - Verify Scene **`David`** contains your Webcam + Physical Mic (`Monitor and Output`).
-  - Verify Scene **`Euclid`** contains the Browser Source (`http://127.0.0.1:8765/avatar`, `1920x1080`, `60 FPS`) and **no** physical mic source.
+  - Verify Scene **`Euclid`** contains the Browser Source (`http://127.0.0.1:8787/avatar`, `1920x1080`, `60 FPS`) and **no** physical mic source.
   - Click **Start Virtual Camera** in OBS.
 - [ ] **6. Launch Zoom on the MacBook & verify audio/video settings:**
   - **Video:** Camera = `OBS Virtual Camera`; **uncheck** *"Mirror my video"*; **check** *"HD"* and *"Original ratio"*.
