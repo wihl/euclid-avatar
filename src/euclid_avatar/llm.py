@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 
 from .config import Config
 from .index import RetrievedChunk
-from .tts import sanitize_greek_text
+from .tts import sanitize_greek_text, sanitize_spoken_english
 
 
 class SentencePair(BaseModel):
@@ -46,7 +46,11 @@ class EuclidLLM:
         self.cfg = cfg
         if not cfg.gemini_api_key:
             raise RuntimeError("GEMINI_API_KEY is not set in .env or environment.")
-        self.client = genai.Client(api_key=cfg.gemini_api_key)
+        self.client = genai.Client(
+            api_key=cfg.gemini_api_key,
+            vertexai=False,
+            http_options={"api_version": "v1beta"},
+        )
         self.persona_path = cfg.prompts_dir / "euclid_persona.md"
         self.system_instruction = self._load_persona()
 
@@ -78,9 +82,11 @@ class EuclidLLM:
 
         user_prompt = (
             f"RETRIEVED MATH E-139 COURSE CONTEXT:\n{context_str}\n\n"
-            f"STUDENT / INSTRUCTOR QUESTION:\n{question.strip()}\n\n"
-            "Return strict JSON with `sources`, `english`, `greek`, and `sentences` (2 to 4 concise sentence pairs). "
-            "Ensure `greek` uses authentic polytonic Ancient Greek (Heiberg/Fitzpatrick vocabulary) and quotes original Greek verbatim when an enunciation, definition, postulate, or common notion is asked for."
+            f"PROFESSOR / STUDENT QUESTION (Group 4 Presentation on Elements II.13):\n{question.strip()}\n\n"
+            "Return strict JSON with `sources`, `english`, `greek`, and `sentences` (2 to 3 concise sentence pairs). "
+            "In `sentences[*].english`, write natural spoken English suitable for a Male Australian voice AND embed the exact cited polytonic Ancient Greek words/phrases in plain Unicode Greek (NFC) so the bilingual TTS engine reads the English in an Australian accent and pronounces every embedded Greek word in Erasmian Greek. "
+            "Do NOT output `<phoneme>` tags, XML tags, or LaTeX math (`$...$`, `\\cos`); write spoken words ('c squared', 'cosine B'). "
+            "In `sentences[*].greek`, provide the corresponding polytonic Ancient Greek quotation or clause from Heiberg/Fitzpatrick."
         )
 
         # Configure minimum thinking overhead based on model family for lowest latency (~1.3-2.2s)
@@ -110,9 +116,9 @@ class EuclidLLM:
             err_str = str(exc)
             if "404" in err_str or "no longer available" in err_str or "503" in err_str or "UNAVAILABLE" in err_str:
                 fallback_model = (
-                    "gemini-3-flash-preview"
-                    if model_to_use != "gemini-3-flash-preview"
-                    else "gemini-3.1-flash-lite"
+                    "gemini-3.1-flash-lite"
+                    if model_to_use != "gemini-3.1-flash-lite"
+                    else "gemini-3-flash-preview"
                 )
                 model_to_use = fallback_model
                 if "lite" in model_to_use:
@@ -142,12 +148,12 @@ class EuclidLLM:
         sentences_raw = data.get("sentences", [])
         sentences: list[dict[str, str]] = []
         for s in sentences_raw:
-            eng_s = str(s.get("english", "")).strip()
+            eng_s = sanitize_spoken_english(str(s.get("english", "")).strip())
             grk_s = sanitize_greek_text(ud.normalize("NFC", str(s.get("greek", "")).strip()))
             if eng_s and grk_s:
                 sentences.append({"english": eng_s, "greek": grk_s})
 
-        english_full = str(data.get("english", "")).strip()
+        english_full = sanitize_spoken_english(str(data.get("english", "")).strip())
         greek_full = sanitize_greek_text(ud.normalize("NFC", str(data.get("greek", "")).strip()))
 
         if not sentences and english_full and greek_full:
