@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import base64
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import io
 import json
 import os
@@ -721,16 +721,258 @@ def erasmian_ssml_words(
     return "".join(parts).replace("·", ";").replace("·", ";")
 
 
-CHIRP_MAX_GREEK_WORDS_PER_CALL = 10
-CHIRP_COMMA_PAUSE_S = 0.34
-CHIRP_SECTION_PAUSE_S = 0.50
+CHIRP_MAX_GREEK_WORDS_PER_CALL = 8
+CHIRP_COMMA_PAUSE_S = 0.24
+CHIRP_SECTION_PAUSE_S = 0.34
+INLINE_LANG_SWITCH_PAUSE_S = 0.08
+EM_DASH_PAUSE_S = 0.14
+SENTENCE_PAUSE_S = 0.20
 MAX_GOOGLE_SSML_BYTES = 4500
+GOOGLE_TTS_V1BETA1_URL = (
+    "https://texttospeech.googleapis.com/v1beta1/text:synthesize"
+)
+
+EMPHASIS_KEYWORDS_RE = re.compile(
+    r"\b("
+    r"law of cosines|no cosine|no minus sign|hinge|equation|"
+    r"not even the noun|drops? out|nominative|genitive|dative|"
+    r"less than|by twice|is less|is greater|completely parallel|"
+    r"never appears|not a single noun|left-hand side|standard we are comparing|"
+    r"exact amount|degree of difference|grammatical case|feminine|neuter|"
+    r"masculine|misprint|Proposition 7|Proposition 47|Pythagorean"
+    r")\b",
+    re.IGNORECASE,
+)
+
+ASIDE_PREFIX_RE = re.compile(
+    r"^("
+    r"Connor\b|Remember\b|That is the thing\b|Now I'll hand over\b|"
+    r"or simply\b|in modern notation\b|which is\b|The two words in bold\b|"
+    r"Here is what each word\b|Look at the two halves\b|This is the same claim\b|"
+    r"Because every Greek\b|Before the proof\b"
+    r")",
+    re.IGNORECASE,
+)
+
+SIGNPOST_PREFIX_RE = re.compile(
+    r"^("
+    r"First\b|Second\b|Third\b|Notice\b|Compare\b|And then\b|Why\b|"
+    r"Here is\b|What about\b|In Step\b"
+    r")",
+    re.IGNORECASE,
+)
+
+
+def strip_prosody_markers(text: str) -> str:
+    """Remove inline **emphasis** or ~aside~ markers and [[break:...]] tags for display/subtitles."""
+    cleaned = BREAK_MARKER_RE.sub(" ", text)
+    cleaned = cleaned.replace("**", "").replace("~", "")
+    return re.sub(r"\s{2,}", " ", cleaned).strip()
+
+
+def normalize_word_for_match(token: str) -> str:
+    """Normalize a Greek or English token for robust word-highlighting alignment."""
+    stripped = strip_prosody_markers(token)
+    stripped = re.sub(
+        r"^[^\w\u0370-\u03ff\u1f00-\u1fff]+|[^\w\u0370-\u03ff\u1f00-\u1fff]+$",
+        "",
+        stripped,
+    )
+    if not stripped:
+        return ""
+    # Fold combining accents so Greek tokens match regardless ofgrave/acute context
+    nfd = ud.normalize("NFD", stripped.lower().replace("ά", "α"))
+    base = "".join(c for c in nfd if not ud.combining(c))
+    return ud.normalize("NFC", base)
+
+
+def infer_diagram_cues(
+    phrase_text: str, fallback_text: str = ""
+) -> tuple[list[str], str]:
+    """Map a spoken Greek/English phrase to active Proposition II.13 SVG diagram cues and caption."""
+    probe = strip_prosody_markers(phrase_text)
+    cues: list[str] = []
+    banner = ""
+
+    def _match(txt: str) -> tuple[list[str], str]:
+        found: list[str] = []
+        cap = ""
+        low = txt.lower()
+        # 1. Slide 5 Proof Step 1 (II.7 on ΓΒ cut at Δ)
+        if (
+            any(
+                w in txt
+                for w in (
+                    "τέτμηται",
+                    "τὰ ἄρα ἀπὸ τῶν ΓΒ, ΒΔ",
+                    "τῷ τε δὶς ὑπὸ τῶν ΓΒ, ΒΔ",
+                )
+            )
+            or "cut at random" in low
+            or "2.7" in low
+            or "proposition 7" in low
+            or ("c b and b d" in low and "c d" in low)
+        ):
+            found.extend(["proof_ii7", "seg_CB", "seg_BD", "seg_DC", "node_D"])
+            cap = "BOOK II.7 · Line ΓΒ cut at Δ: ΓΒ² + ΒΔ² = 2·ΓΒ·ΒΔ + ΔΓ²"
+
+        # 2. Slide 5 Proof Step 2a (I.47 on right triangle ΑΒΔ)
+        if (
+            "ΒΔ, ΔΑ" in txt
+            or "b d and d a" in low
+            or ("ἀπὸ τῆς ΑΒ" in txt and "ἴσον" in txt)
+            or ("pythagorean" in low and "c d" not in low)
+            or "1.47" in low
+        ):
+            found.extend(
+                ["proof_i47_ABD", "seg_BA", "seg_BD", "seg_AD", "perp_AD"]
+            )
+            if not cap:
+                cap = "BOOK I.47 · Right Triangle △ΑΒΔ: ΑΒ² = ΒΔ² + ΔΑ²"
+
+        # 3. Slide 5 Proof Step 2b (I.47 on right triangle ΑΔΓ)
+        if (
+            "ΓΔ, ΔΑ" in txt
+            or "c d and d a" in low
+            or ("ἀπὸ τῆς ΑΓ" in txt and "ἴσον" in txt)
+            or "second half of that sentence" in low
+        ):
+            found.extend(
+                ["proof_i47_ADC", "seg_AC", "seg_DC", "seg_AD", "perp_AD"]
+            )
+            if not cap:
+                cap = "BOOK I.47 · Right Triangle △ΑΔΓ: ΑΓ² = ΓΔ² + ΔΑ²"
+
+        # 4. Nominative Square on ΑΓ (τὸ ἀπὸ τῆς ΑΓ τετράγωνον)
+        if (
+            "ἀπὸ τῆς ΑΓ" in txt
+            or "ὑποτεινούσης" in txt
+            or "nominative" in low
+            or "opposite the acute angle" in low
+            or "square on a c" in low
+            or "left-hand side" in low
+            or (
+                re.search(r"\bΑΓ\b", txt)
+                and "ΓΔ, ΔΑ" not in txt
+                and "ἴσον" not in txt
+            )
+        ):
+            found.extend(["sq_AC", "seg_AC"])
+            if not cap:
+                cap = "NOMINATIVE (Subject) · □ ΑΓ² — τὸ ἀπὸ τῆς ΑΓ τετράγωνον"
+
+        # 5. Genitive Squares on ΓΒ, ΒΑ (τῶν ἀπὸ τῶν ΓΒ, ΒΑ τετραγώνων)
+        if (
+            "ΓΒ, ΒΑ" in txt
+            or "περιεχουσῶν" in txt
+            or "genitive" in low
+            or "containing that angle" in low
+            or "containing the acute" in low
+            or "squares on c b and b a" in low
+            or "two squares are bundled" in low
+        ):
+            found.extend(["sq_CB_BA", "seg_CB", "seg_BA"])
+            if not cap:
+                cap = 'GENITIVE ("than") · □ ΓΒ² + □ ΒΑ² — τῶν ἀπὸ τῶν ΓΒ, ΒΑ'
+
+        # 6. Dative Double-Rectangle 2·(ΓΒ × ΒΔ)
+        if (
+            "ΓΒ, ΒΔ" in txt
+            or "περιεχομένῳ" in txt
+            or "ὀρθογωνίῳ" in txt
+            or "ὀρθογώνιον" in txt
+            or "dative" in low
+            or "twice the rectangle" in low
+            or "rectangle contained by" in low
+            or "2 c b times b d" in low
+            or "two times c b times b d" in low
+            or "degree of difference" in low
+        ):
+            found.extend(["rect_2_CB_BD", "seg_CB", "seg_BD"])
+            if not cap:
+                cap = 'DATIVE ("by") · 2 rect(ΓΒ, ΒΔ) — τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ'
+
+        # 7. Perpendicular ΑΔ (ἡ κάθετος)
+        if (
+            "κάθετος" in txt
+            or "καθέτου" in txt
+            or "ΑΔ" in txt
+            or "perpendicular" in low
+            or "a d" in low
+            or "πίπτει" in txt
+        ):
+            found.extend(["perp_AD", "seg_AD", "node_D"])
+            if not cap:
+                cap = "PERPENDICULAR · ἡ ΑΔ κάθετος (AD ⊥ ΓΒ at Δ)"
+
+        # 8. Cut-off Projection ΒΔ (ἀπολαμβανομένης ἐντὸς)
+        if (
+            "ἀπολαμβανομένης" in txt
+            or "cuts off inside" in low
+            or "cut off inside" in low
+            or (
+                re.search(r"\bΒΔ\b", txt)
+                and "ΓΒ, ΒΔ" not in txt
+                and "ΒΔ, ΔΑ" not in txt
+            )
+        ):
+            found.extend(["seg_BD", "acute_triangle"])
+            if not cap:
+                cap = "PROJECTION · Segment ΒΔ cut off toward acute ∠Β"
+
+        # 9. Hinge comparison (ἔλαττόν ἐστι / μεῖζόν ἐστι)
+        if (
+            "ἔλαττόν" in txt
+            or "ἔλαττον" in txt
+            or "μεῖζόν" in txt
+            or "is less" in low
+            or "hinge" in low
+        ):
+            found.extend(["hinge_less", "sq_AC", "sq_CB_BA"])
+            if not cap:
+                cap = "HINGE · ἔλαττόν ἐστι — □ ΑΓ² < □ ΓΒ² + □ ΒΑ²"
+
+        # 10. Full equation / Law of Cosines overview
+        if (
+            "law of cosines" in low
+            or "three grammatical cases" in low
+            or "work of an equation" in low
+            or "zahid" in low
+        ):
+            found.extend(["all_equation", "sq_AC", "sq_CB_BA", "rect_2_CB_BD"])
+            if not cap:
+                cap = "II.13 LAW OF COSINES · ΑΓ² = ΓΒ² + ΒΑ² − 2·ΓΒ·ΒΔ"
+
+        # 11. Acute-angled triangle / Enunciation opening
+        if (
+            "ὀξυγωνίοις" in txt
+            or "τριγώνοις" in txt
+            or "ὀξεῖαν" in txt
+            or "ὀξείᾳ" in txt
+            or "acute-angled" in low
+            or "acute angle" in low
+        ):
+            found.append("acute_triangle")
+            if not cap:
+                cap = "ACUTE TRIANGLE △ΑΒΓ · Acute Angle at Vertex Β (∠Β)"
+
+        # Dedup while preserving order
+        deduped = list(dict.fromkeys(found))
+        return deduped, cap
+
+    cues, banner = _match(probe)
+    if not cues and fallback_text:
+        cues, banner = _match(strip_prosody_markers(fallback_text))
+    if not cues:
+        cues = ["acute_triangle"]
+        banner = "PROPOSITION II.13 · Acute-Angled Triangle △ΑΒΓ with Altitude ΑΔ"
+    return cues, banner
 
 
 def _clause_speaking_rate(
     clause_text: str, english_rate: float, greek_rate: float
 ) -> float:
-    """Select an unhurried speaking rate per clause, slowing down for Greek & geometric letters."""
+    """Select a speaking rate per clause, slowing down for Greek & geometric letters."""
     greek_words = len(WORD_RE.findall(clause_text))
     english_words = len(re.findall(r"[A-Za-z]{2,}", clause_text))
     has_letters = bool(LETTERS_RE.search(clause_text))
@@ -751,55 +993,350 @@ def _parse_break_seconds(duration_str: str) -> float:
         return float(text[:-2]) / 1000.0
     if text.endswith("s"):
         return float(text[:-1])
-    return 0.35
+    return 0.20
+
+
+# Matches a contiguous run of Greek words (including internal spaces and Greek punctuation)
+GREEK_SPAN_RE = re.compile(
+    r"[\u0370-\u03ff\u1f00-\u1fff][\u0370-\u03ff\u1f00-\u1fff\s,··;;.᾿'’\-]*[\u0370-\u03ff\u1f00-\u1fff,··;;.]|[\u0370-\u03ff\u1f00-\u1fff]+"
+)
+
+
+def _split_expressive_bilingual_phrases(
+    spoken_text: str,
+) -> list[tuple[str, str, float]]:
+    """Split a bilingual utterance into pure-English and pure-Greek discourse phrases.
+
+    Returns a list of (phrase_text, lang, trailing_pause_s) where lang is 'en' or 'gr'.
+    Pure separation prevents Chirp3-HD from slurring Greek <phoneme> tags when mixed
+    with English prose, while sentence/dash splitting enables dynamic per-phrase
+    variation in tone, speed, and emphasis without chopping mid-sentence on commas.
+    """
+    raw_chunks: list[tuple[str, float]] = []
+    pos = 0
+    for match in BREAK_MARKER_RE.finditer(spoken_text):
+        chunk = spoken_text[pos : match.start()].strip()
+        # Scale down explicit break durations slightly so speech stays cohesive
+        pause_s = min(0.28, _parse_break_seconds(match.group(1)) * 0.72)
+        if chunk:
+            raw_chunks.append((chunk, pause_s))
+        pos = match.end()
+    tail = spoken_text[pos:].strip()
+    if tail:
+        raw_chunks.append((tail, 0.0))
+
+    # Step 1: Isolate Greek spans from English spans inside each chunk
+    lang_spans: list[tuple[str, str, float]] = []
+    for chunk, chunk_pause in raw_chunks:
+        has_gr = bool(WORD_RE.search(chunk))
+        has_en = bool(re.search(r"[A-Za-z]{2,}", chunk))
+        if not has_gr:
+            lang_spans.append((chunk, "en", chunk_pause))
+            continue
+        if not has_en:
+            lang_spans.append((chunk, "gr", chunk_pause))
+            continue
+
+        # Mixed chunk: split cleanly around GREEK_SPAN_RE
+        last_idx = 0
+        matches = list(GREEK_SPAN_RE.finditer(chunk))
+        for m_idx, m in enumerate(matches):
+            before = chunk[last_idx : m.start()].strip()
+            if before:
+                lang_spans.append((before, "en", INLINE_LANG_SWITCH_PAUSE_S))
+            gr_text = m.group().strip()
+            after_idx = m.end()
+            is_final_part = (
+                m_idx == len(matches) - 1 and not chunk[after_idx:].strip()
+            )
+            gr_pause = (
+                chunk_pause if is_final_part else INLINE_LANG_SWITCH_PAUSE_S
+            )
+            if gr_text:
+                lang_spans.append((gr_text, "gr", gr_pause))
+            last_idx = after_idx
+        rem = chunk[last_idx:].strip()
+        if rem:
+            lang_spans.append((rem, "en", chunk_pause))
+
+    # Step 2: Refine long Greek spans by clause, and English spans by sentence / em-dash
+    refined: list[tuple[str, str, float]] = []
+    for text, lang, trailing_pause in lang_spans:
+        cleaned = text.strip()
+        if not cleaned:
+            continue
+        if lang == "gr":
+            if len(WORD_RE.findall(cleaned)) <= CHIRP_MAX_GREEK_WORDS_PER_CALL:
+                # Ensure Greek span ends with sentence punctuation for clean phoneme release
+                norm_gr = re.sub(r"[,··;;]+$", ".", cleaned)
+                if not norm_gr.endswith((".", "!", "?")):
+                    norm_gr += "."
+                refined.append((norm_gr, "gr", trailing_pause))
+            else:
+                clauses = [
+                    c.strip()
+                    for c in re.split(r"(?<=[,··;;.!?])\s+", cleaned)
+                    if c.strip()
+                ]
+                for idx, clause in enumerate(clauses):
+                    is_last = idx == len(clauses) - 1
+                    pause = (
+                        trailing_pause
+                        if is_last
+                        else (
+                            CHIRP_SECTION_PAUSE_S
+                            if clause.endswith((";", ";", "·", "·", ".", "!"))
+                            else CHIRP_COMMA_PAUSE_S
+                        )
+                    )
+                    norm_gr = re.sub(r"[,··;;]+$", ".", clause)
+                    if not norm_gr.endswith((".", "!", "?")):
+                        norm_gr += "."
+                    refined.append((norm_gr, "gr", pause))
+        else:
+            # Split English span on full sentence boundaries (. ! ?) even after closing quotes/**/~,
+            # or on em-dashes ( — ). Coalesce any short (<4-word) fragments with their neighbor
+            # so Chirp3-HD always receives natural 5-18 word breath groups.
+            raw_parts = [
+                p.strip()
+                for p in re.split(
+                    r'(?<=[.!?])(?:["\'”’*~]+)?\s+|\s+—\s+',
+                    cleaned,
+                )
+                if p.strip()
+            ]
+            if not raw_parts:
+                raw_parts = [cleaned]
+            parts: list[str] = []
+            for p in raw_parts:
+                w_count = len(re.findall(r"[A-Za-z]+", p))
+                if parts and w_count < 4:
+                    parts[-1] = f"{parts[-1]} {p}"
+                else:
+                    parts.append(p)
+            if len(parts) > 1 and len(re.findall(r"[A-Za-z]+", parts[0])) < 4:
+                parts[1] = f"{parts[0]} {parts[1]}"
+                parts.pop(0)
+            for idx, part in enumerate(parts):
+                is_last = idx == len(parts) - 1
+                stripped_part = part.rstrip('"\'”’*~ ')
+                if is_last:
+                    pause = trailing_pause
+                elif stripped_part.endswith((".", "!", "?")):
+                    pause = SENTENCE_PAUSE_S
+                else:
+                    # Preceded an em-dash: ensure comma for natural continuation intonation
+                    if not stripped_part.endswith((",", ":", ";", ".", "!", "?")):
+                        part = part + ","
+                    pause = EM_DASH_PAUSE_S
+                refined.append((part, "en", pause))
+    return refined
+
+
+def _compute_phrase_prosody(
+    phrase_text: str,
+    lang: str,
+    phrase_idx: int,
+    eng_rate: float,
+    grk_rate: float,
+    prev_bucket: str = "",
+) -> tuple[float, str | None, str | None, float, float, str]:
+    """Compute (speaking_rate, ssml_pitch, ssml_rate, dsp_pitch_st, dsp_gain_db, bucket) for a phrase.
+
+    Note: ssml_rate is kept None when speaking_rate is sent in audioConfig so Google Cloud TTS
+    does not double-multiply rates. Variation in speed is driven directly by speaking_rate,
+    while variation in tone/inflection/emphasis is driven jointly by <prosody pitch="...">
+    and _shape_phrase_pcm(dsp_pitch_st, dsp_gain_db).
+    """
+    if lang == "gr":
+        has_letters = bool(LETTERS_RE.search(phrase_text))
+        if has_letters:
+            rate = min(grk_rate, 0.76)
+            return (rate, None, None, -0.2, 1.3, "gr_letters")
+        step = phrase_idx % 3
+        if step == 0:
+            return (grk_rate * 1.00, None, None, 0.4, 1.1, "gr_0")
+        if step == 1:
+            return (grk_rate * 1.04, None, None, -0.4, 0.8, "gr_1")
+        return (grk_rate * 0.98, None, None, 0.6, 1.2, "gr_2")
+
+    plain = strip_prosody_markers(phrase_text)
+    has_bold = "**" in phrase_text
+    has_aside = "~" in phrase_text or bool(ASIDE_PREFIX_RE.search(plain))
+    has_signpost = bool(SIGNPOST_PREFIX_RE.search(plain)) or plain.endswith(
+        ("?", ":")
+    )
+    has_emphasis = has_bold or plain.endswith("!")
+
+    if has_aside and not has_bold:
+        if prev_bucket == "en_aside_brisk":
+            rate = min(1.12, max(0.90, eng_rate * 1.08))
+            return (rate, "+0.9st", None, 0.6, 0.3, "en_narrative_lively")
+        rate = min(1.15, max(0.92, eng_rate * 1.15))
+        return (rate, "-1.4st", None, -1.0, -0.9, "en_aside_brisk")
+
+    if has_emphasis:
+        if prev_bucket == "en_emphasis_high":
+            # Alternate consecutive emphasized claims to a warm, authoritative lower-pitch cadence
+            rate = min(1.04, max(0.86, eng_rate * 0.98))
+            return (rate, "-1.1st", None, -0.8, 1.9, "en_emphasis_warm")
+        rate = min(1.02, max(0.84, eng_rate * 0.95))
+        return (rate, "+2.0st", None, 1.5, 2.2, "en_emphasis_high")
+
+    if has_signpost and prev_bucket != "en_signpost_rise":
+        rate = min(1.08, max(0.88, eng_rate * 1.03))
+        return (rate, "+1.5st", None, 1.1, 1.3, "en_signpost_rise")
+
+    # Flowing narrative: cycle through 3 distinct prosodic steps, skipping prev_bucket
+    candidates = [
+        (min(1.12, eng_rate * 1.10), "+0.9st", None, 0.7, 0.6, "en_narrative_lively"),
+        (max(0.88, eng_rate * 1.00), "-0.8st", None, -0.6, -0.2, "en_narrative_grounded"),
+        (min(1.14, eng_rate * 1.13), "+1.3st", None, 0.9, 1.0, "en_narrative_forward"),
+    ]
+    pick = candidates[phrase_idx % 3]
+    if pick[5] == prev_bucket:
+        pick = candidates[(phrase_idx + 1) % 3]
+    return pick
+
+
+def _shape_phrase_pcm(
+    pcm: np.ndarray,
+    pitch_semitones: float,
+    gain_db: float,
+    sr: int = SAMPLE_RATE,
+) -> np.ndarray:
+    """Apply subtle, natural pitch inflection and dynamic emphasis gain via fast in-memory FFmpeg pipe."""
+    if pcm.size == 0 or (abs(pitch_semitones) < 0.08 and abs(gain_db) < 0.08):
+        return pcm
+    ratio = 2.0 ** (pitch_semitones / 12.0)
+    new_sr = int(round(sr * ratio))
+    tempo = 1.0 / ratio
+    af = f"asetrate={new_sr},aresample={sr},atempo={tempo:.5f},volume={gain_db:.2f}dB"
+    try:
+        res = subprocess.run(
+            [
+                "ffmpeg",
+                "-v",
+                "error",
+                "-f",
+                "f32le",
+                "-ar",
+                str(sr),
+                "-ac",
+                "1",
+                "-i",
+                "pipe:0",
+                "-af",
+                af,
+                "-f",
+                "f32le",
+                "pipe:1",
+            ],
+            input=pcm.astype("<f4").tobytes(),
+            capture_output=True,
+            check=True,
+            timeout=5,
+        )
+        shaped = np.frombuffer(res.stdout, dtype="<f4").copy()
+        if shaped.size > 0 and np.isfinite(shaped).all():
+            return np.clip(shaped, -PEAK_LIMIT, PEAK_LIMIT)
+    except Exception:
+        pass
+    gain_lin = 10.0 ** (gain_db / 20.0)
+    return np.clip(pcm * gain_lin, -PEAK_LIMIT, PEAK_LIMIT)
+
+
+def _extract_phrase_word_timings(
+    phrase_text: str,
+    clip_pcm: np.ndarray,
+    start_time_s: float,
+    sr: int,
+    base_index: int,
+    full_segment_text: str,
+) -> list[dict[str, Any]]:
+    """Compute energy-aligned start and end timestamps (seconds) for each word in a phrase."""
+    clean_text = strip_prosody_markers(phrase_text)
+    raw_tokens = [t for t in re.findall(r"\S+", clean_text) if t.strip()]
+    if not raw_tokens or clip_pcm.size == 0:
+        return []
+
+    dur_s = len(clip_pcm) / float(sr)
+    cues, banner = infer_diagram_cues(clean_text, full_segment_text)
+
+    # Compute phonemic duration weights per word
+    weights: list[float] = []
+    for tok in raw_tokens:
+        norm = normalize_word_for_match(tok)
+        w = max(1.2, float(len(norm)) * 0.85)
+        if LETTERS_RE.search(tok):
+            # Uppercase Greek geometric letter pairs ("ΑΓ", "ΓΒ") are spoken as full letter names
+            letter_count = sum(1 for c in tok if "Α" <= c <= "Ω")
+            w += letter_count * 3.2
+        if tok.endswith((",", ";", ":", "—", ".", "!", "?", "·", "·")):
+            w += 1.1
+        weights.append(w)
+
+    total_w = sum(weights) or 1.0
+    cum_fractions = np.cumsum([0.0, *weights]) / total_w
+
+    # Use smoothed amplitude envelope of clip_pcm to warp word boundaries to actual speech bursts
+    env_win = max(1, int(0.015 * sr))
+    abs_pcm = np.abs(clip_pcm)
+    if len(abs_pcm) > env_win * 2:
+        kernel = np.ones(env_win, dtype=np.float32) / env_win
+        env = np.convolve(abs_pcm, kernel, mode="same") + 0.015
+        cum_energy = np.cumsum(env)
+        cum_energy = (cum_energy - cum_energy[0]) / max(
+            1e-6, float(cum_energy[-1] - cum_energy[0])
+        )
+        time_axis = np.linspace(0.0, dur_s, len(cum_energy))
+        warped_times = np.interp(cum_fractions, cum_energy, time_axis)
+        # Blend 65% energy-warped + 35% linear weight so boundaries never bunch unnaturally
+        linear_times = cum_fractions * dur_s
+        boundary_times = 0.65 * warped_times + 0.35 * linear_times
+    else:
+        boundary_times = cum_fractions * dur_s
+
+    out: list[dict[str, Any]] = []
+    for idx, tok in enumerate(raw_tokens):
+        w_start = start_time_s + float(boundary_times[idx])
+        w_end = start_time_s + float(boundary_times[idx + 1])
+        # Refine word-specific diagram cues if this specific token names a geometric object
+        tok_cues, tok_banner = infer_diagram_cues(tok, clean_text)
+        active_cues = tok_cues if tok_cues != ["acute_triangle"] else cues
+        active_banner = tok_banner if tok_cues != ["acute_triangle"] else banner
+        out.append(
+            {
+                "index": base_index + idx,
+                "word": tok,
+                "norm": normalize_word_for_match(tok),
+                "is_greek": bool(WORD_RE.search(tok)),
+                "start_s": round(w_start, 3),
+                "end_s": round(max(w_start + 0.04, w_end), 3),
+                "diagram_cues": active_cues,
+                "cue_banner": active_banner,
+            }
+        )
+    return out
 
 
 def _split_bilingual_clauses_for_chirp(
     spoken_text: str,
 ) -> list[tuple[str, float]]:
-    """Split a long bilingual/Greek utterance into short clauses for Chirp3-HD sentence limits."""
-    # First split on explicit [[break:...]] markers
-    segments: list[tuple[str, float]] = []
-    pos = 0
-    for match in BREAK_MARKER_RE.finditer(spoken_text):
-        chunk = spoken_text[pos : match.start()].strip()
-        pause_s = _parse_break_seconds(match.group(1))
-        if chunk:
-            segments.append((chunk, pause_s))
-        pos = match.end()
-    tail = spoken_text[pos:].strip()
-    if tail:
-        segments.append((tail, 0.0))
-
-    refined: list[tuple[str, float]] = []
-    for chunk, trailing_pause in segments:
-        if len(WORD_RE.findall(chunk)) <= CHIRP_MAX_GREEK_WORDS_PER_CALL:
-            refined.append((chunk, trailing_pause))
-            continue
-        # Split on clause punctuation (, · · ; ; . ! ?)
-        clauses = [
-            c.strip()
-            for c in re.split(r"(?<=[,··;;.!?])\s+", chunk)
-            if c.strip()
-        ]
-        for idx, clause in enumerate(clauses):
-            is_last = idx == len(clauses) - 1
-            if is_last:
-                pause = trailing_pause
-            elif clause.endswith((";", ";", "·", "·", ".", "!", "?")):
-                pause = CHIRP_SECTION_PAUSE_S
-            else:
-                pause = CHIRP_COMMA_PAUSE_S
-            # Replace trailing comma/colon with period so Chirp3-HD sees sentence-ending punctuation
-            clean_clause = re.sub(r"[,··;;]+$", ".", clause)
-            refined.append((clean_clause, pause))
-    return refined
+    """Backward-compatible wrapper returning (phrase_text, pause_s)."""
+    return [
+        (txt, pause)
+        for txt, _lang, pause in _split_expressive_bilingual_phrases(
+            spoken_text
+        )
+    ]
 
 
 def sanitize_spoken_english(text: str) -> str:
     """Strip accidental XML/SSML tags and expand LaTeX math for natural spoken TTS & subtitles."""
     # Remove any accidental <phoneme ...>, </phoneme>, <speak>, or XML tags emitted by an LLM
     cleaned = re.sub(r"</?[a-zA-Z][^>]*>", "", text)
+    cleaned = cleaned.replace("**", "").replace("~", "")
     # Expand common LaTeX algebraic expressions so TTS never reads "dollar" or "caret"
     cleaned = cleaned.replace("$", "")
     cleaned = re.sub(r"\\cos\b", "cosine ", cleaned)
@@ -811,17 +1348,27 @@ def sanitize_spoken_english(text: str) -> str:
     return re.sub(r"\s{2,}", " ", cleaned).strip()
 
 
-def bilingual_ssml(text: str, voice: str = "en-AU-Neural2-D") -> str:
-    """Build <speak>...</speak> SSML for mixed Australian English + Erasmian Greek text.
-
-    English tokens are left as natural text for the Australian male voice;
-    all polytonic Greek words and Greek uppercase geometric labels (Α, Β, Γ, Δ)
-    are wrapped in locale-valid Erasmian IPA <phoneme> tags. Supports optional
-    [[break:350ms]] inline pause markers.
-    """
+def bilingual_ssml(
+    text: str,
+    voice: str = "en-AU-Chirp3-HD-Charon",
+    ssml_pitch: str | None = None,
+    ssml_rate: str | None = None,
+) -> str:
+    """Build <speak>...</speak> SSML for mixed Australian English + Erasmian Greek text."""
     cleaned = sanitize_spoken_english(text)
     body = erasmian_ssml_words(cleaned, voice=voice)
-    body = BREAK_MARKER_RE.sub(r'<break time="\1"/>', body)
+    if "Chirp3-HD" not in voice:
+        body = BREAK_MARKER_RE.sub(r'<break time="\1"/>', body)
+    else:
+        body = BREAK_MARKER_RE.sub(" ", body)
+    if (ssml_pitch or ssml_rate) and not WORD_RE.search(cleaned):
+        attrs: list[str] = []
+        if ssml_pitch:
+            attrs.append(f'pitch="{ssml_pitch}"')
+        if ssml_rate:
+            attrs.append(f'rate="{ssml_rate}"')
+        attr_str = " ".join(attrs)
+        body = f"<prosody {attr_str}>{body}</prosody>"
     return f"<speak>{body}</speak>"
 
 
@@ -1104,6 +1651,7 @@ class SentenceAudioChunk:
     synthesis_ms: float
     backend: str
     voice: str
+    word_timings: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _voice_language_code(voice_name: str, default: str = "en-AU") -> str:
@@ -1130,10 +1678,10 @@ class GreekTTSAdapter:
             )
             credentials.refresh(Request())
             self._google_session = AuthorizedSession(credentials)
-            warmup_voice = self.cfg.tts_voice_english or "en-AU-Neural2-D"
+            warmup_voice = self.cfg.tts_voice_english or "en-AU-Chirp3-HD-Charon"
             warmup_lang = _voice_language_code(warmup_voice, "en-AU")
             self._google_session.post(
-                "https://texttospeech.googleapis.com/v1/text:synthesize",
+                GOOGLE_TTS_V1BETA1_URL,
                 json={
                     "input": {"text": "a"},
                     "voice": {"languageCode": warmup_lang, "name": warmup_voice},
@@ -1182,7 +1730,7 @@ class GreekTTSAdapter:
             },
         }
         response = self._google_session.post(
-            "https://texttospeech.googleapis.com/v1/text:synthesize",
+            GOOGLE_TTS_V1BETA1_URL,
             json=payload,
             timeout=25,
         )
@@ -1221,94 +1769,76 @@ class GreekTTSAdapter:
             if rate is not None
             else self.cfg.tts_rate
         )
-        active_rate = _clause_speaking_rate(spoken_text, eng_rate, grk_rate)
 
-        full_ssml = bilingual_ssml(spoken_text, voice=active_voice)
-        use_clause_split = (
-            len(full_ssml.encode("utf-8")) > MAX_GOOGLE_SSML_BYTES
-            or (
-                "Chirp3-HD" in active_voice
-                and (
-                    len(WORD_RE.findall(spoken_text))
-                    > CHIRP_MAX_GREEK_WORDS_PER_CALL
-                    or bool(BREAK_MARKER_RE.search(spoken_text))
-                )
+        phrases = _split_expressive_bilingual_phrases(spoken_text)
+        clips: list[np.ndarray] = []
+        word_timings: list[dict[str, Any]] = []
+        cursor_s = 0.0
+        prev_en_bucket = ""
+
+        for phrase_idx, (phrase_text, lang, pause_s) in enumerate(phrases):
+            (
+                p_rate,
+                ssml_pitch,
+                ssml_rate,
+                dsp_pitch_st,
+                dsp_gain_db,
+                bucket,
+            ) = _compute_phrase_prosody(
+                phrase_text,
+                lang,
+                phrase_idx,
+                eng_rate,
+                grk_rate,
+                prev_bucket=prev_en_bucket if lang == "en" else "",
             )
+            if lang == "en":
+                prev_en_bucket = bucket
+            phrase_ssml = bilingual_ssml(
+                phrase_text,
+                voice=active_voice,
+                ssml_pitch=ssml_pitch if lang == "en" else None,
+                ssml_rate=ssml_rate if lang == "en" else None,
+            )
+            clip = self._google_synthesize_ssml(
+                phrase_ssml, active_voice, active_lang, p_rate
+            )
+            clip = _shape_phrase_pcm(clip, dsp_pitch_st, dsp_gain_db, SAMPLE_RATE)
+            phrase_timings = _extract_phrase_word_timings(
+                phrase_text,
+                clip,
+                cursor_s,
+                SAMPLE_RATE,
+                len(word_timings),
+                spoken_text,
+            )
+            word_timings.extend(phrase_timings)
+            clips.append(clip)
+            cursor_s += len(clip) / float(SAMPLE_RATE)
+            if pause_s > 0:
+                pause_samples = round(SAMPLE_RATE * pause_s)
+                clips.append(np.zeros(pause_samples, dtype=np.float32))
+                cursor_s += pause_samples / float(SAMPLE_RATE)
+
+        pcm = (
+            np.concatenate(clips)
+            if clips
+            else np.zeros(int(0.1 * SAMPLE_RATE), dtype=np.float32)
         )
-        if use_clause_split:
-            clips: list[np.ndarray] = []
-            for clause_text, pause_s in _split_bilingual_clauses_for_chirp(
-                spoken_text
-            ):
-                clause_rate = _clause_speaking_rate(
-                    clause_text, eng_rate, grk_rate
-                )
-                clause_ssml = bilingual_ssml(clause_text, voice=active_voice)
-                clip = self._google_synthesize_ssml(
-                    clause_ssml, active_voice, active_lang, clause_rate
-                )
-                clips.append(clip)
-                if pause_s > 0:
-                    clips.append(
-                        np.zeros(
-                            round(SAMPLE_RATE * pause_s), dtype=np.float32
-                        )
-                    )
-            pcm = (
-                np.concatenate(clips)
-                if clips
-                else np.zeros(int(0.1 * SAMPLE_RATE), dtype=np.float32)
-            )
-        else:
-            try:
-                pcm = self._google_synthesize_ssml(
-                    full_ssml, active_voice, active_lang, active_rate
-                )
-            except RuntimeError as exc:
-                if (
-                    "sentences that are too long" not in str(exc)
-                    and "longer than the limit" not in str(exc)
-                ):
-                    raise
-                clips = []
-                for clause_text, pause_s in _split_bilingual_clauses_for_chirp(
-                    spoken_text
-                ):
-                    clause_rate = _clause_speaking_rate(
-                        clause_text, eng_rate, grk_rate
-                    )
-                    clause_ssml = bilingual_ssml(
-                        clause_text, voice=active_voice
-                    )
-                    clip = self._google_synthesize_ssml(
-                        clause_ssml, active_voice, active_lang, clause_rate
-                    )
-                    clips.append(clip)
-                    if pause_s > 0:
-                        clips.append(
-                            np.zeros(
-                                round(SAMPLE_RATE * pause_s), dtype=np.float32
-                            )
-                        )
-                pcm = (
-                    np.concatenate(clips)
-                    if clips
-                    else np.zeros(int(0.1 * SAMPLE_RATE), dtype=np.float32)
-                )
-        if self.cfg.tts_level_speech:
-            pcm = level_speech_fast(pcm, SAMPLE_RATE, use_ffmpeg=True)
+        pcm = np.clip(pcm, -PEAK_LIMIT, PEAK_LIMIT)
 
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
         duration_s = len(pcm) / float(SAMPLE_RATE)
         return SentenceAudioChunk(
             index=index,
-            english=english_display or spoken_text,
+            english=english_display or strip_prosody_markers(spoken_text),
             greek=greek_display,
             pcm=pcm,
             duration_s=round(duration_s, 3),
             synthesis_ms=round(elapsed_ms, 1),
             backend="google_au_bilingual",
             voice=active_voice,
+            word_timings=word_timings,
         )
 
     def synthesize_sentence(

@@ -28,7 +28,15 @@ from .presentation import (
     synthesize_or_load_segment,
 )
 from .stt import STT_SAMPLE_RATE, LocalWhisperSTT
-from .tts import SAMPLE_RATE, GreekTTSAdapter, SentenceAudioChunk, read_wav_mono24k, write_wav_mono24k
+from .tts import (
+    SAMPLE_RATE,
+    GreekTTSAdapter,
+    SentenceAudioChunk,
+    _extract_phrase_word_timings,
+    read_wav_mono24k,
+    strip_prosody_markers,
+    write_wav_mono24k,
+)
 
 
 @dataclass
@@ -526,6 +534,12 @@ class EuclidPipeline:
                     break
                 chunk = turn.audio_chunks[idx]
 
+                if not chunk.word_timings and len(chunk.pcm):
+                    spoken_src = f"{chunk.english} {chunk.greek}".strip()
+                    chunk.word_timings = _extract_phrase_word_timings(
+                        spoken_src, chunk.pcm, 0.0, SAMPLE_RATE, 0, spoken_src
+                    )
+
                 # Emit synchronized subtitle for /avatar and /control
                 self.emit(
                     {
@@ -535,12 +549,20 @@ class EuclidPipeline:
                         "total_sentences": turn.total_sentences,
                         "english": chunk.english,
                         "greek": chunk.greek,
+                        "spoken": chunk.english,
+                        "word_timings": chunk.word_timings,
                         "speaking": True,
                     }
                 )
 
                 if play_audio:
-                    self._stream_pcm_with_rms(chunk.pcm, SAMPLE_RATE, out_idx, turn.cancel_event)
+                    self._stream_pcm_with_rms(
+                        chunk.pcm,
+                        SAMPLE_RATE,
+                        out_idx,
+                        turn.cancel_event,
+                        word_timings=chunk.word_timings,
+                    )
                 else:
                     # In headless dry-run mode, emit simulated RMS frames quickly
                     rms = float(np.sqrt(np.mean(chunk.pcm**2))) if len(chunk.pcm) else 0.0
@@ -577,14 +599,32 @@ class EuclidPipeline:
                 self.emit_turn_update(turn)
                 self.log_turn(turn)
 
+    @staticmethod
+    def _find_word_at_time(
+        word_timings: list[dict[str, Any]] | None, elapsed_s: float
+    ) -> dict[str, Any] | None:
+        if not word_timings:
+            return None
+        active = None
+        for w in word_timings:
+            if w["start_s"] <= elapsed_s + 0.02:
+                active = w
+                if elapsed_s <= w["end_s"] + 0.05:
+                    return w
+            else:
+                break
+        return active
+
     def _stream_pcm_with_rms(
         self,
         pcm: np.ndarray,
         sr: int,
         device_idx: int | None,
         cancel_event: threading.Event,
+        *,
+        word_timings: list[dict[str, Any]] | None = None,
     ) -> None:
-        """Stream mono float32 PCM to CoreAudio while broadcasting 60 Hz RMS amplitude to /avatar."""
+        """Stream mono float32 PCM to CoreAudio while broadcasting 60 Hz RMS & word/diagram cues."""
         hop = int(sr / 60)  # 400 samples @ 24 kHz = 16.67 ms (60 Hz)
         total = len(pcm)
         try:
@@ -600,9 +640,26 @@ class EuclidPipeline:
                     end = min(pos + hop, total)
                     frame = pcm[pos:end]
                     rms = float(np.sqrt(np.mean(frame**2))) if len(frame) else 0.0
-                    # Normalize RMS into [0.0, 1.0] for avatar jaw/glow animation
                     norm_rms = min(1.0, rms * 4.2)
-                    self.emit({"type": "amplitude", "rms": round(norm_rms, 4)})
+                    elapsed_s = pos / float(sr)
+                    aw = self._find_word_at_time(word_timings, elapsed_s)
+                    payload: dict[str, Any] = {
+                        "type": "amplitude",
+                        "rms": round(norm_rms, 4),
+                        "elapsed_s": round(elapsed_s, 3),
+                    }
+                    if aw is not None:
+                        payload.update(
+                            {
+                                "word_index": aw["index"],
+                                "word": aw["word"],
+                                "norm": aw["norm"],
+                                "is_greek": aw["is_greek"],
+                                "diagram_cues": aw["diagram_cues"],
+                                "cue_banner": aw["cue_banner"],
+                            }
+                        )
+                    self.emit(payload)
                     stream.write(frame.reshape(-1, 1))
                     pos = end
         except Exception:
@@ -935,6 +992,8 @@ class EuclidPipeline:
                             "total_sentences": total_segs,
                             "english": seg.english,
                             "greek": seg.greek,
+                            "spoken": strip_prosody_markers(seg.spoken),
+                            "word_timings": chunk.word_timings,
                             "speaking": True,
                         }
                     )
@@ -946,6 +1005,7 @@ class EuclidPipeline:
                             out_idx,
                             self._pres_cancel,
                             self._pres_pause_gate,
+                            word_timings=chunk.word_timings,
                         )
                     else:
                         rms = float(np.sqrt(np.mean(chunk.pcm**2))) if len(chunk.pcm) else 0.0
@@ -986,8 +1046,10 @@ class EuclidPipeline:
         device_idx: int | None,
         cancel_event: threading.Event,
         pause_gate: threading.Event,
+        *,
+        word_timings: list[dict[str, Any]] | None = None,
     ) -> None:
-        """Stream mono float32 PCM to CoreAudio with pause/resume support and 60 Hz RMS broadcast."""
+        """Stream mono float32 PCM to CoreAudio with pause/resume support and 60 Hz RMS/word/diagram cues."""
         hop = int(sr / 60)
         total = len(pcm)
         try:
@@ -1009,7 +1071,25 @@ class EuclidPipeline:
                     frame = pcm[pos:end]
                     rms = float(np.sqrt(np.mean(frame**2))) if len(frame) else 0.0
                     norm_rms = min(1.0, rms * 4.2)
-                    self.emit({"type": "amplitude", "rms": round(norm_rms, 4)})
+                    elapsed_s = pos / float(sr)
+                    aw = self._find_word_at_time(word_timings, elapsed_s)
+                    payload: dict[str, Any] = {
+                        "type": "amplitude",
+                        "rms": round(norm_rms, 4),
+                        "elapsed_s": round(elapsed_s, 3),
+                    }
+                    if aw is not None:
+                        payload.update(
+                            {
+                                "word_index": aw["index"],
+                                "word": aw["word"],
+                                "norm": aw["norm"],
+                                "is_greek": aw["is_greek"],
+                                "diagram_cues": aw["diagram_cues"],
+                                "cue_banner": aw["cue_banner"],
+                            }
+                        )
+                    self.emit(payload)
                     stream.write(frame.reshape(-1, 1))
                     pos = end
         except Exception:

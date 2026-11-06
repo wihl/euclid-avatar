@@ -324,7 +324,7 @@ AVATAR_HTML = """<!DOCTYPE html>
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 28px 64px 36px 64px;
+    padding: 24px 56px 30px 56px;
   }
   .header-banner {
     display: flex;
@@ -334,33 +334,33 @@ AVATAR_HTML = """<!DOCTYPE html>
     padding: 10px 32px;
     border: 1.5px solid rgba(218, 181, 92, 0.45);
     border-radius: 999px;
-    background: rgba(12, 17, 28, 0.82);
+    background: rgba(12, 17, 28, 0.86);
     letter-spacing: 0.06em;
-    font-size: 22px;
+    font-size: 21px;
     color: #e5c467;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
   }
   .header-banner span.sub {
     color: #b7c2d6;
-    font-size: 19px;
+    font-size: 18px;
     letter-spacing: 0.02em;
   }
   .main-row {
     width: 100%;
-    height: 670px;
+    height: 690px;
     display: grid;
-    grid-template-columns: 540px 1fr;
-    gap: 32px;
-    align-items: center;
+    grid-template-columns: 580px 1fr;
+    gap: 28px;
+    align-items: stretch;
   }
   .diagram-card {
     position: relative;
-    width: 540px;
-    height: 630px;
-    background: rgba(11, 16, 26, 0.92);
+    width: 580px;
+    height: 690px;
+    background: rgba(11, 16, 26, 0.94);
     border: 2px solid rgba(229, 196, 103, 0.55);
     border-radius: 22px;
-    padding: 22px 26px;
+    padding: 18px 24px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -371,7 +371,7 @@ AVATAR_HTML = """<!DOCTYPE html>
     justify-content: space-between;
     align-items: center;
     border-bottom: 1.5px solid rgba(229, 196, 103, 0.32);
-    padding-bottom: 10px;
+    padding-bottom: 8px;
   }
   .diagram-title {
     font-size: 22px;
@@ -386,84 +386,97 @@ AVATAR_HTML = """<!DOCTYPE html>
   }
   svg.ii13-fig {
     width: 100%;
-    height: 390px;
+    height: 430px;
     overflow: visible;
   }
+  .geo-area {
+    opacity: 0.16;
+    transition: opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1), filter 0.32s ease, transform 0.32s ease;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .geo-area.active-area {
+    opacity: 0.96;
+    filter: drop-shadow(0 0 16px rgba(243, 212, 124, 0.55));
+    transform: scale(1.015);
+  }
   .seg-line {
-    transition: stroke-width 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+    transition: stroke-width 0.22s ease, filter 0.22s ease, opacity 0.22s ease;
   }
   .seg-line.active-glow {
-    stroke-width: 7px !important;
-    filter: drop-shadow(0 0 12px rgba(243, 212, 124, 0.95));
+    stroke-width: 7.5px !important;
+    filter: drop-shadow(0 0 14px rgba(243, 212, 124, 0.98));
   }
   .pt-node {
-    transition: transform 0.18s ease, filter 0.18s ease;
+    transition: transform 0.22s ease, filter 0.22s ease;
     transform-box: fill-box;
     transform-origin: center;
   }
   .pt-node.active-pt {
-    filter: drop-shadow(0 0 12px rgba(243, 212, 124, 1));
-    transform: scale(1.18);
+    filter: drop-shadow(0 0 14px rgba(243, 212, 124, 1));
+    transform: scale(1.22);
+  }
+  @keyframes pulseAngle {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.12); opacity: 1; }
+  }
+  .angle-arc-active {
+    animation: pulseAngle 1.4s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(243, 212, 124, 0.9));
+  }
+  .cue-banner {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #fff3c4;
+    background: linear-gradient(90deg, rgba(229, 196, 103, 0.22) 0%, rgba(56, 139, 253, 0.18) 100%);
+    border: 1.5px solid rgba(243, 212, 124, 0.55);
+    border-radius: 10px;
+    padding: 8px 12px;
+    text-align: center;
+    letter-spacing: 0.01em;
+    transition: all 0.25s ease;
   }
   .case-legend {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 14px;
-    background: rgba(18, 26, 42, 0.78);
+    font-size: 13.5px;
+    background: rgba(18, 26, 42, 0.82);
     border: 1px solid rgba(229, 196, 103, 0.28);
     border-radius: 12px;
-    padding: 10px 14px;
+    padding: 8px 12px;
   }
   .legend-item {
     display: flex;
     align-items: center;
     gap: 8px;
     color: #dce5f5;
+    padding: 3px 6px;
+    border-radius: 6px;
+    border-left: 3px solid transparent;
+    transition: background 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
+  }
+  .legend-item.active-leg {
+    background: rgba(243, 212, 124, 0.16);
+    border-left-color: #f3d47c;
+    color: #ffffff;
+    transform: translateX(4px);
   }
   .legend-swatch {
     width: 12px;
     height: 12px;
     border-radius: 3px;
     display: inline-block;
-  }
-  .wave-bar-wrap {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding-top: 6px;
-  }
-  .wave-label {
-    font-family: -apple-system, sans-serif;
-    font-size: 13px;
-    color: #9aa8c2;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .wave-bars {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    height: 28px;
-    flex: 1;
-    justify-content: flex-end;
-  }
-  .wave-bar {
-    width: 5px;
-    height: 5px;
-    border-radius: 999px;
-    background: linear-gradient(180deg, #f5d97e 0%, #c49733 100%);
-    opacity: 0.45;
-    transition: height 0.05s linear, opacity 0.05s linear;
+    flex-shrink: 0;
   }
   .slide-card {
-    height: 630px;
-    background: rgba(11, 16, 26, 0.90);
+    height: 690px;
+    background: rgba(11, 16, 26, 0.92);
     border: 2px solid rgba(229, 196, 103, 0.55);
     border-radius: 22px;
-    padding: 28px 38px;
+    padding: 24px 34px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -475,11 +488,11 @@ AVATAR_HTML = """<!DOCTYPE html>
     justify-content: space-between;
     align-items: center;
     border-bottom: 1.5px solid rgba(229, 196, 103, 0.35);
-    padding-bottom: 14px;
-    margin-bottom: 20px;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
   }
   .slide-title {
-    font-size: 34px;
+    font-size: 32px;
     font-weight: 700;
     color: #f3d47c;
   }
@@ -487,9 +500,9 @@ AVATAR_HTML = """<!DOCTYPE html>
     background: #1b263b;
     border: 1.5px solid #e5c467;
     color: #f0d078;
-    padding: 5px 18px;
+    padding: 5px 16px;
     border-radius: 999px;
-    font-size: 18px;
+    font-size: 16px;
     font-family: -apple-system, sans-serif;
     font-weight: 600;
   }
@@ -498,25 +511,32 @@ AVATAR_HTML = """<!DOCTYPE html>
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 16px;
+    gap: 14px;
   }
   .slide-row {
     background: rgba(23, 33, 52, 0.72);
-    border-left: 4px solid #e5c467;
+    border-left: 4px solid rgba(229, 196, 103, 0.55);
     border-radius: 10px;
-    padding: 14px 20px;
+    padding: 13px 18px;
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .slide-row.active-row {
+    background: rgba(38, 54, 84, 0.92);
+    border-left: 6px solid #f3d47c;
+    box-shadow: 0 0 22px rgba(243, 212, 124, 0.22);
+    transform: translateX(4px);
   }
   .slide-row-greek {
     font-family: "New Athena Unicode", "Gentium Plus", "Palatino Linotype", Georgia, serif;
-    font-size: 27px;
-    line-height: 1.38;
+    font-size: 26px;
+    line-height: 1.42;
     color: #f7df94;
     margin-bottom: 6px;
   }
   .slide-row-eng {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 22px;
-    line-height: 1.34;
+    font-size: 21px;
+    line-height: 1.36;
     color: #e4ecf7;
   }
   .slide-two-col {
@@ -524,17 +544,47 @@ AVATAR_HTML = """<!DOCTYPE html>
     grid-template-columns: 1fr 1fr;
     gap: 16px;
   }
+  /* Word-by-word highlight tokens */
+  .w-tok {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 0 3px;
+    margin: 0 -1px;
+    transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .w-tok.greek-tok.speaking {
+    background: linear-gradient(180deg, rgba(243, 212, 124, 0.45) 0%, rgba(212, 160, 48, 0.38) 100%);
+    color: #ffffff !important;
+    font-weight: 700;
+    transform: scale(1.09) translateY(-1px);
+    box-shadow: 0 0 16px rgba(243, 212, 124, 0.75);
+    border-bottom: 2.5px solid #ffd97d;
+  }
+  .w-tok.greek-tok.spoken {
+    color: #fff6d6;
+    border-bottom: 1.5px solid rgba(243, 212, 124, 0.42);
+  }
+  .w-tok.eng-tok.speaking {
+    background: rgba(88, 166, 255, 0.34);
+    color: #ffe58f !important;
+    transform: scale(1.05);
+    box-shadow: 0 0 12px rgba(88, 166, 255, 0.5);
+    border-bottom: 2px solid #79c0ff;
+  }
+  .w-tok.eng-tok.spoken {
+    color: #d8e8ff;
+  }
   .subtitle-wrapper {
     position: relative;
     width: 100%;
   }
   .subtitle-box {
     width: 100%;
-    min-height: 210px;
-    background: rgba(8, 11, 18, 0.94);
+    min-height: 205px;
+    background: rgba(8, 11, 18, 0.95);
     border: 2.5px solid rgba(229, 196, 103, 0.68);
     border-radius: 20px;
-    padding: 20px 40px;
+    padding: 18px 36px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -546,17 +596,17 @@ AVATAR_HTML = """<!DOCTYPE html>
   .greek-sub {
     font-family: "New Athena Unicode", "Gentium Plus", "Palatino Linotype", Georgia, serif;
     font-size: 29px;
-    line-height: 1.34;
+    line-height: 1.42;
     color: #f0d078;
     margin-bottom: 10px;
     font-weight: 500;
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
-    max-width: 1680px;
+    max-width: 1720px;
   }
   .english-sub {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 36px;
-    line-height: 1.30;
+    font-size: 32px;
+    line-height: 1.34;
     font-weight: 700;
     color: #ffffff;
     text-shadow:
@@ -565,7 +615,7 @@ AVATAR_HTML = """<!DOCTYPE html>
       -2px  2px 0 #000,
        2px  2px 0 #000,
        0px  4px 12px rgba(0, 0, 0, 0.95);
-    max-width: 1680px;
+    max-width: 1720px;
   }
   .progress-pill {
     position: absolute;
@@ -576,7 +626,7 @@ AVATAR_HTML = """<!DOCTYPE html>
     color: #f0d078;
     padding: 4px 18px;
     border-radius: 999px;
-    font-size: 17px;
+    font-size: 16px;
     font-family: -apple-system, sans-serif;
     font-weight: 600;
     display: none;
@@ -595,109 +645,155 @@ AVATAR_HTML = """<!DOCTYPE html>
       <div class="diagram-card">
         <div class="diagram-header">
           <div>
-            <div class="diagram-title">Elements II.13 · Figure</div>
-            <div class="diagram-sub">Acute-angled △ΑΒΓ with altitude ΑΔ ⊥ ΒΓ</div>
+            <div class="diagram-title">Elements II.13 · Interactive Figure</div>
+            <div class="diagram-sub">ΑΓ² = ΓΒ² + ΒΑ² − 2·ΓΒ·ΒΔ (Acute ∠Β, Altitude ΑΔ ⊥ ΓΒ)</div>
           </div>
-          <div class="slide-pill" id="activeLettersBadge" style="font-size:15px;">△ ΑΒΓ</div>
+          <div class="slide-pill" id="activeLettersBadge" style="font-size:14px;">△ ΑΒΓ</div>
         </div>
 
-        <svg class="ii13-fig" viewBox="0 0 480 370" xmlns="http://www.w3.org/2000/svg">
+        <svg class="ii13-fig" viewBox="0 0 500 395" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <linearGradient id="acSquareFill" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="rgba(243, 212, 124, 0.16)"/>
-              <stop offset="100%" stop-color="rgba(243, 212, 124, 0.04)"/>
+            <linearGradient id="nomGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(243, 212, 124, 0.42)"/>
+              <stop offset="100%" stop-color="rgba(218, 165, 32, 0.14)"/>
             </linearGradient>
-            <linearGradient id="rectFill" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="rgba(86, 211, 100, 0.18)"/>
-              <stop offset="100%" stop-color="rgba(86, 211, 100, 0.05)"/>
+            <linearGradient id="genBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(88, 166, 255, 0.38)"/>
+              <stop offset="100%" stop-color="rgba(56, 139, 253, 0.12)"/>
+            </linearGradient>
+            <linearGradient id="datGreenGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="rgba(86, 211, 100, 0.42)"/>
+              <stop offset="100%" stop-color="rgba(46, 160, 67, 0.14)"/>
+            </linearGradient>
+            <linearGradient id="triAbdGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(210, 153, 34, 0.48)"/>
+              <stop offset="100%" stop-color="rgba(210, 153, 34, 0.15)"/>
+            </linearGradient>
+            <linearGradient id="triAdcGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="rgba(163, 113, 247, 0.45)"/>
+              <stop offset="100%" stop-color="rgba(163, 113, 247, 0.15)"/>
             </linearGradient>
           </defs>
 
-          <!-- Faint rectangle 2 · ΓΒ · ΒΔ reference band below base ΒΓ -->
-          <rect id="rect-CB-BD" x="72" y="275" width="336" height="46" rx="4"
-                fill="url(#rectFill)" stroke="rgba(86, 211, 100, 0.42)" stroke-width="1.5" stroke-dasharray="5 4"/>
-          <line x1="196" y1="275" x2="196" y2="321" stroke="rgba(86, 211, 100, 0.5)" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="240" y="303" text-anchor="middle" fill="#8ce99a" font-size="15" font-family="Palatino, Georgia, serif">
-            τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ (2 · CB · BD)
-          </text>
+          <!-- 1. GENITIVE SQUARE ON BA (□ ΒΑ², top-left outward polygon) -->
+          <g id="grp-sq-BA" class="geo-area">
+            <polygon points="100,248 184,104 102,56 18,200"
+                     fill="url(#genBlueGrad)" stroke="#79c0ff" stroke-width="2.2" stroke-dasharray="6 3"/>
+            <text x="98" y="132" text-anchor="middle" fill="#a5d6ff" font-size="14" font-weight="700">□ ΒΑ²</text>
+            <text x="98" y="149" text-anchor="middle" fill="#79c0ff" font-size="12">ἀπὸ τῆς ΒΑ</text>
+          </g>
 
-          <!-- Triangle interior fill -->
-          <polygon points="196,56 72,275 408,275" fill="rgba(56, 139, 253, 0.07)"/>
+          <!-- 2. NOMINATIVE SQUARE ON AC (□ ΑΓ², top-right outward polygon) -->
+          <g id="grp-sq-AC" class="geo-area">
+            <polygon points="184,104 376,248 448,152 256,8"
+                     fill="url(#nomGoldGrad)" stroke="#f3d47c" stroke-width="2.5"/>
+            <text x="318" y="114" text-anchor="middle" fill="#ffe58f" font-size="15.5" font-weight="700">□ ΑΓ² (Nom.)</text>
+            <text x="318" y="133" text-anchor="middle" fill="#f3d47c" font-size="13">τὸ ἀπὸ τῆς ΑΓ</text>
+          </g>
 
-          <!-- Acute angle arc at Β (72, 275) -->
-          <path d="M 112,275 A 40,40 0 0,0 92,240" fill="none" stroke="#f3d47c" stroke-width="2.2"/>
-          <text x="122" y="262" fill="#f3d47c" font-size="14" font-style="italic">ὀξεῖα</text>
+          <!-- 3. GENITIVE SQUARE ON CB (□ ΓΒ², subtle reference frame below base) -->
+          <g id="grp-sq-CB" class="geo-area">
+            <rect x="100" y="248" width="276" height="126" rx="4"
+                  fill="url(#genBlueGrad)" stroke="#79c0ff" stroke-width="2.2" stroke-dasharray="7 4"/>
+            <text x="322" y="364" text-anchor="middle" fill="#a5d6ff" font-size="13.5" font-weight="700">□ ΓΒ² (ἀπὸ τῆς ΓΒ)</text>
+          </g>
 
-          <!-- Right-angle marker at Δ (196, 275) -->
-          <polyline points="196,257 214,257 214,275" fill="none" stroke="#56d364" stroke-width="2"/>
+          <!-- 4. DATIVE DOUBLE-RECTANGLE 2 · rect(ΓΒ, ΒΔ) below base ΓΒ -->
+          <g id="grp-rect-2CBBD" class="geo-area">
+            <rect id="rect-CB-BD" x="100" y="252" width="276" height="84" rx="5"
+                  fill="url(#datGreenGrad)" stroke="#56d364" stroke-width="2.5"/>
+            <line x1="100" y1="294" x2="376" y2="294" stroke="#56d364" stroke-width="1.6" stroke-dasharray="5 4"/>
+            <line x1="184" y1="252" x2="184" y2="336" stroke="rgba(86, 211, 100, 0.7)" stroke-width="1.8" stroke-dasharray="4 3"/>
+            <text x="242" y="280" text-anchor="middle" fill="#aff5b4" font-size="14" font-weight="700">
+              1× ὑπὸ τῶν ΓΒ, ΒΔ (CB · BD)
+            </text>
+            <text x="242" y="320" text-anchor="middle" fill="#aff5b4" font-size="14" font-weight="700">
+              2× τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ (Dat.)
+            </text>
+          </g>
 
-          <!-- Base ΓΒ (CB) and segments ΒΔ (BD), ΔΓ (DC) -->
-          <line id="seg-CB" class="seg-line" x1="72" y1="275" x2="408" y2="275" stroke="#79c0ff" stroke-width="4.5" stroke-linecap="round"/>
-          <line id="seg-BD" class="seg-line" x1="72" y1="275" x2="196" y2="275" stroke="#56d364" stroke-width="5" stroke-linecap="round"/>
-          <line id="seg-DC" class="seg-line" x1="196" y1="275" x2="408" y2="275" stroke="#79c0ff" stroke-width="4.5" stroke-linecap="round"/>
+          <!-- 5. Base Triangle △ΑΒΓ interior & Slide 5 I.47 Right-Triangle Sub-Regions -->
+          <polygon id="tri-ABC-base" points="184,104 100,248 376,248" fill="rgba(56, 139, 253, 0.08)"/>
+          <polygon id="grp-tri-ABD" class="geo-area" points="184,104 100,248 184,248" fill="url(#triAbdGrad)" stroke="#f0b72f" stroke-width="2"/>
+          <polygon id="grp-tri-ADC" class="geo-area" points="184,104 184,248 376,248" fill="url(#triAdcGrad)" stroke="#bc8cff" stroke-width="2"/>
 
-          <!-- Side ΒΑ (BA) -->
-          <line id="seg-BA" class="seg-line" x1="72" y1="275" x2="196" y2="56" stroke="#79c0ff" stroke-width="4.5" stroke-linecap="round"/>
+          <!-- 6. Acute angle arc at Β (100, 248) -->
+          <g id="grp-acute-B">
+            <path d="M 138,248 A 38,38 0 0,0 119,215" fill="none" stroke="#f3d47c" stroke-width="2.8"/>
+            <text x="144" y="236" fill="#f3d47c" font-size="13.5" font-weight="600" font-style="italic">ὀξεῖα</text>
+          </g>
 
-          <!-- Subtending side ΑΓ (AC) - Nominative subject -->
-          <line id="seg-AC" class="seg-line" x1="196" y1="56" x2="408" y2="275" stroke="#f3d47c" stroke-width="5" stroke-linecap="round"/>
+          <!-- 7. Right-angle marker at Δ (184, 248) -->
+          <g id="grp-right-D">
+            <polyline points="184,230 202,230 202,248" fill="none" stroke="#56d364" stroke-width="2.4"/>
+          </g>
 
-          <!-- Perpendicular ΑΔ (AD) - ἡ κάθετος -->
-          <line id="seg-AD" class="seg-line" x1="196" y1="56" x2="196" y2="275" stroke="#56d364" stroke-width="3.5" stroke-dasharray="7 5" stroke-linecap="round"/>
+          <!-- 8. Primary Triangle Segments & Altitude -->
+          <line id="seg-CB" class="seg-line" x1="100" y1="248" x2="376" y2="248" stroke="#79c0ff" stroke-width="4.5" stroke-linecap="round"/>
+          <line id="seg-BD" class="seg-line" x1="100" y1="248" x2="184" y2="248" stroke="#56d364" stroke-width="5.5" stroke-linecap="round"/>
+          <line id="seg-DC" class="seg-line" x1="184" y1="248" x2="376" y2="248" stroke="#79c0ff" stroke-width="4.5" stroke-linecap="round"/>
+          <line id="seg-BA" class="seg-line" x1="100" y1="248" x2="184" y2="104" stroke="#79c0ff" stroke-width="4.5" stroke-linecap="round"/>
+          <line id="seg-AC" class="seg-line" x1="184" y1="104" x2="376" y2="248" stroke="#f3d47c" stroke-width="5.2" stroke-linecap="round"/>
+          <line id="seg-AD" class="seg-line" x1="184" y1="104" x2="184" y2="248" stroke="#56d364" stroke-width="3.8" stroke-dasharray="7 5" stroke-linecap="round"/>
 
-          <!-- Midpoint segment labels -->
-          <text x="112" y="156" fill="#a5d6ff" font-size="16" font-weight="600">ΒΑ (BA)</text>
-          <text x="316" y="156" fill="#f7df94" font-size="17" font-weight="700">ΑΓ (AC)</text>
-          <text x="206" y="178" fill="#7ee787" font-size="15" font-weight="600">ἡ κάθετος ΑΔ</text>
-          <text x="134" y="294" text-anchor="middle" fill="#7ee787" font-size="15" font-weight="600">ΒΔ (BD)</text>
-          <text x="302" y="294" text-anchor="middle" fill="#a5d6ff" font-size="15" font-weight="600">ΔΓ (DC)</text>
+          <!-- Segment Labels -->
+          <text x="122" y="172" fill="#a5d6ff" font-size="15" font-weight="700">ΒΑ</text>
+          <text x="292" y="170" fill="#f7df94" font-size="16" font-weight="700">ΑΓ</text>
+          <text x="193" y="188" fill="#7ee787" font-size="14" font-weight="700">ἡ κάθετος ΑΔ</text>
+          <text x="142" y="268" text-anchor="middle" fill="#7ee787" font-size="14.5" font-weight="700">ΒΔ (BD)</text>
+          <text x="280" y="268" text-anchor="middle" fill="#a5d6ff" font-size="14.5" font-weight="700">ΔΓ (DC)</text>
+
+          <!-- Inequality Hinge Badge (ἔλαττόν ἐστι) -->
+          <g id="grp-hinge" class="geo-area">
+            <rect x="192" y="42" width="136" height="32" rx="16" fill="#1b263b" stroke="#f3d47c" stroke-width="2"/>
+            <text x="260" y="63" text-anchor="middle" fill="#ffe58f" font-size="14.5" font-weight="700">ἔλαττόν ἐστι (&lt;)</text>
+          </g>
 
           <!-- Vertex Α (A) -->
           <g id="pt-A" class="pt-node">
-            <circle cx="196" cy="56" r="16" fill="#172236" stroke="#f3d47c" stroke-width="2.5"/>
-            <text x="196" y="62" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="700">Α</text>
-            <text x="196" y="30" text-anchor="middle" fill="#b7c2d6" font-size="14" font-family="-apple-system,sans-serif">A</text>
+            <circle cx="184" cy="104" r="15" fill="#172236" stroke="#f3d47c" stroke-width="2.5"/>
+            <text x="184" y="110" text-anchor="middle" fill="#ffffff" font-size="17" font-weight="700">Α</text>
+            <text x="184" y="80" text-anchor="middle" fill="#b7c2d6" font-size="13" font-family="-apple-system,sans-serif">A</text>
           </g>
 
           <!-- Vertex Β (B) -->
           <g id="pt-B" class="pt-node">
-            <circle cx="72" cy="275" r="16" fill="#172236" stroke="#79c0ff" stroke-width="2.5"/>
-            <text x="72" y="281" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="700">Β</text>
-            <text x="42" y="280" text-anchor="middle" fill="#b7c2d6" font-size="14" font-family="-apple-system,sans-serif">B</text>
+            <circle cx="100" cy="248" r="15" fill="#172236" stroke="#79c0ff" stroke-width="2.5"/>
+            <text x="100" y="254" text-anchor="middle" fill="#ffffff" font-size="17" font-weight="700">Β</text>
+            <text x="72" y="253" text-anchor="middle" fill="#b7c2d6" font-size="13" font-family="-apple-system,sans-serif">B</text>
           </g>
 
           <!-- Vertex Γ (C) -->
           <g id="pt-C" class="pt-node">
-            <circle cx="408" cy="275" r="16" fill="#172236" stroke="#f3d47c" stroke-width="2.5"/>
-            <text x="408" y="281" text-anchor="middle" fill="#ffffff" font-size="18" font-weight="700">Γ</text>
-            <text x="438" y="280" text-anchor="middle" fill="#b7c2d6" font-size="14" font-family="-apple-system,sans-serif">C</text>
+            <circle cx="376" cy="248" r="15" fill="#172236" stroke="#f3d47c" stroke-width="2.5"/>
+            <text x="376" y="254" text-anchor="middle" fill="#ffffff" font-size="17" font-weight="700">Γ</text>
+            <text x="404" y="253" text-anchor="middle" fill="#b7c2d6" font-size="13" font-family="-apple-system,sans-serif">C</text>
           </g>
 
           <!-- Point Δ (D) -->
           <g id="pt-D" class="pt-node">
-            <circle cx="196" cy="275" r="15" fill="#172236" stroke="#56d364" stroke-width="2.5"/>
-            <text x="196" y="281" text-anchor="middle" fill="#ffffff" font-size="17" font-weight="700">Δ</text>
+            <circle cx="184" cy="248" r="14" fill="#172236" stroke="#56d364" stroke-width="2.5"/>
+            <text x="184" y="254" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="700">Δ</text>
           </g>
         </svg>
 
-        <div class="case-legend">
-          <div class="legend-item">
-            <span class="legend-swatch" style="background:#f3d47c;"></span>
-            <span><strong>Nom.</strong> τὸ ἀπὸ τῆς ΑΓ — <em>square on AC</em></span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-swatch" style="background:#79c0ff;"></span>
-            <span><strong>Gen.</strong> τῶν ἀπὸ τῶν ΓΒ, ΒΑ — <em>than squares on CB, BA</em></span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-swatch" style="background:#56d364;"></span>
-            <span><strong>Dat.</strong> τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ — <em>by 2 · rect(CB, BD)</em></span>
-          </div>
+        <div class="cue-banner" id="figActiveCueLabel">
+          PROPOSITION II.13 · Acute-Angled Triangle △ΑΒΓ with Altitude ΑΔ
         </div>
 
-        <div class="wave-bar-wrap">
-          <span class="wave-label" id="voiceStatusLabel">Voice Ready</span>
-          <div class="wave-bars" id="waveBars"></div>
+        <div class="case-legend">
+          <div class="legend-item" id="leg-nom">
+            <span class="legend-swatch" style="background:#f3d47c;"></span>
+            <span><strong>Nom. (Subject):</strong> τὸ ἀπὸ τῆς ΑΓ — <em>square on AC (□ ΑΓ²)</em></span>
+          </div>
+          <div class="legend-item" id="leg-gen">
+            <span class="legend-swatch" style="background:#79c0ff;"></span>
+            <span><strong>Gen. ("than"):</strong> τῶν ἀπὸ τῶν ΓΒ, ΒΑ — <em>squares on CB, BA</em></span>
+          </div>
+          <div class="legend-item" id="leg-dat">
+            <span class="legend-swatch" style="background:#56d364;"></span>
+            <span><strong>Dat. ("by"):</strong> τῷ δὶς ὑπὸ τῶν ΓΒ, ΒΔ — <em>2 · rect(CB, BD)</em></span>
+          </div>
         </div>
       </div>
 
@@ -711,7 +807,7 @@ AVATAR_HTML = """<!DOCTYPE html>
     </div>
 
     <div class="subtitle-wrapper">
-      <div class="progress-pill" id="progressPill">Segment 1 / 12</div>
+      <div class="progress-pill" id="progressPill">Segment 1 / 13</div>
       <div class="subtitle-box">
         <div class="greek-sub" id="greekSub">Ἐν τοῖς ὀξυγωνίοις τριγώνοις τὸ ἀπὸ τῆς τὴν ὀξεῖαν γωνίαν ὑποτεινούσης πλευρᾶς τετράγωνον ἔλαττόν ἐστι...</div>
         <div class="english-sub" id="englishSub">Euclid, Elements II.13 — Ready for 5-Minute Presentation & Professor Q&A</div>
@@ -727,66 +823,166 @@ AVATAR_HTML = """<!DOCTYPE html>
   const slideBadge = document.getElementById('slideBadge');
   const slideBody = document.getElementById('slideBody');
   const activeLettersBadge = document.getElementById('activeLettersBadge');
-  const voiceStatusLabel = document.getElementById('voiceStatusLabel');
-  const waveBarsContainer = document.getElementById('waveBars');
+  const figActiveCueLabel = document.getElementById('figActiveCueLabel');
 
-  const NUM_WAVE_BARS = 24;
-  const waveBars = [];
-  for (let i = 0; i < NUM_WAVE_BARS; i++) {
-    const b = document.createElement('div');
-    b.className = 'wave-bar';
-    waveBarsContainer.appendChild(b);
-    waveBars.push(b);
-  }
+  let activeWordTimings = [];
+  let lastWordIdx = -1;
+  let greekOccurrenceCursor = 0;
+  let engOccurrenceCursor = 0;
 
-  let currentRms = 0;
-  let smoothRms = 0;
-  let wavePhase = 0;
-
-  function highlightDiagramLetters(greekText, engText) {
-    const combined = `${greekText || ''} ${engText || ''}`;
-    const segMap = {
-      'seg-AC': /(ΑΓ|ΓΑ|\bAC\b|\bCA\b)/,
-      'seg-CB': /(ΓΒ|ΒΓ|\bCB\b|\bBC\b)/,
-      'seg-BA': /(ΒΑ|ΑΒ|\bBA\b|\bAB\b)/,
-      'seg-BD': /(ΒΔ|ΔΒ|\bBD\b|\bDB\b)/,
-      'seg-AD': /(ΑΔ|ΔΑ|\bAD\b|\bDA\b|κάθετος|καθέτου)/,
-      'seg-DC': /(ΔΓ|ΓΔ|\bDC\b|\bCD\b)/
-    };
-    const activeLabels = [];
-    Object.entries(segMap).forEach(([id, regex]) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (regex.test(combined)) {
-        el.classList.add('active-glow');
-        activeLabels.push(id.replace('seg-', ''));
-      } else {
-        el.classList.remove('active-glow');
-      }
-    });
-    const ptMap = {
-      'pt-A': /[ΑA]/,
-      'pt-B': /[ΒB]/,
-      'pt-C': /[ΓC]/,
-      'pt-D': /[ΔD]/
-    };
-    Object.entries(ptMap).forEach(([id, regex]) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      if (regex.test(greekText || '')) {
-        el.classList.add('active-pt');
-      } else {
-        el.classList.remove('active-pt');
-      }
-    });
-    activeLettersBadge.textContent = activeLabels.length ? `Highlighting: ${activeLabels.join(', ')}` : '△ ΑΒΓ';
-  }
-
-  function formatMdInline(str) {
+  function normalizeWordJS(str) {
     if (!str) return '';
-    return str
-      .replace(/\\*\\*(.+?)\\*\\*/g, '<strong style="color:#fff;text-decoration:underline;text-decoration-color:#e5c467;">$1</strong>')
-      .replace(/\\*(.+?)\\*/g, '<em style="color:#ffd97d;">$1</em>');
+    const trimmed = str.replace(/^[^\\w\\u0370-\\u03ff\\u1f00-\\u1fff]+|[^\\w\\u0370-\\u03ff\\u1f00-\\u1fff]+$/g, '');
+    if (!trimmed) return '';
+    return trimmed.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').normalize('NFC');
+  }
+
+  function isGreekToken(str) {
+    return /[\\u0370-\\u03ff\\u1f00-\\u1fff]/.test(str || '');
+  }
+
+  function tokenizeHtmlWithSpans(rawText, defaultGreek) {
+    if (!rawText) return '';
+    // First convert **bold** and *italic* while wrapping individual words in .w-tok spans
+    const cleaned = rawText.replace(/\\*\\*(.+?)\\*\\*/g, '⟪B⟫$1⟪/B⟫').replace(/\\*(.+?)\\*/g, '⟪I⟫$1⟪/I⟫');
+    const parts = cleaned.split(/(\\s+|⟪\\/?[BI]⟫)/);
+    let out = '';
+    for (const p of parts) {
+      if (!p) continue;
+      if (p === '⟪B⟫') { out += '<strong style="color:#fff;text-decoration:underline;text-decoration-color:#e5c467;">'; continue; }
+      if (p === '⟪/B⟫') { out += '</strong>'; continue; }
+      if (p === '⟪I⟫') { out += '<em style="color:#ffd97d;">'; continue; }
+      if (p === '⟪/I⟫') { out += '</em>'; continue; }
+      if (/^\\s+$/.test(p)) { out += p; continue; }
+      const norm = normalizeWordJS(p);
+      if (!norm) { out += p; continue; }
+      const isGr = isGreekToken(p) || (defaultGreek && !/[A-Za-z]{2,}/.test(p));
+      const cls = isGr ? 'w-tok greek-tok' : 'w-tok eng-tok';
+      out += `<span class="${cls}" data-norm="${norm}">${p}</span>`;
+    }
+    return out;
+  }
+
+  function applyDiagramCues(cues, bannerText) {
+    const cueSet = new Set(cues || []);
+    if (bannerText) {
+      figActiveCueLabel.textContent = bannerText;
+    }
+
+    const setArea = (id, active) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('active-area', !!active);
+    };
+    const setSeg = (id, active) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('active-glow', !!active);
+    };
+    const setPt = (id, active) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('active-pt', !!active);
+    };
+    const setLeg = (id, active) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.toggle('active-leg', !!active);
+    };
+
+    const showNom = cueSet.has('sq_AC') || cueSet.has('all_equation');
+    const showGen = cueSet.has('sq_CB_BA') || cueSet.has('all_equation');
+    const showDat = cueSet.has('rect_2_CB_BD') || cueSet.has('all_equation') || cueSet.has('proof_ii7');
+
+    setArea('grp-sq-AC', showNom);
+    setArea('grp-sq-BA', showGen);
+    setArea('grp-sq-CB', showGen || cueSet.has('proof_ii7'));
+    setArea('grp-rect-2CBBD', showDat);
+    setArea('grp-hinge', cueSet.has('hinge_less') || cueSet.has('all_equation'));
+    setArea('grp-tri-ABD', cueSet.has('proof_i47_ABD'));
+    setArea('grp-tri-ADC', cueSet.has('proof_i47_ADC'));
+
+    setLeg('leg-nom', showNom);
+    setLeg('leg-gen', showGen);
+    setLeg('leg-dat', showDat);
+
+    setSeg('seg-AC', showNom || cueSet.has('seg_AC') || cueSet.has('proof_i47_ADC'));
+    setSeg('seg-CB', showGen || showDat || cueSet.has('seg_CB') || cueSet.has('proof_ii7'));
+    setSeg('seg-BA', showGen || cueSet.has('seg_BA') || cueSet.has('proof_i47_ABD'));
+    setSeg('seg-BD', showDat || cueSet.has('seg_BD') || cueSet.has('proof_ii7') || cueSet.has('proof_i47_ABD'));
+    setSeg('seg-DC', cueSet.has('seg_DC') || cueSet.has('proof_ii7') || cueSet.has('proof_i47_ADC'));
+    setSeg('seg-AD', cueSet.has('perp_AD') || cueSet.has('seg_AD') || cueSet.has('proof_i47_ABD') || cueSet.has('proof_i47_ADC'));
+
+    setPt('pt-A', showNom || showGen || cueSet.has('perp_AD') || cueSet.has('proof_i47_ABD') || cueSet.has('proof_i47_ADC'));
+    setPt('pt-B', showGen || showDat || cueSet.has('acute_triangle') || cueSet.has('seg_BD'));
+    setPt('pt-C', showNom || showGen || showDat || cueSet.has('proof_ii7'));
+    setPt('pt-D', cueSet.has('perp_AD') || cueSet.has('node_D') || cueSet.has('seg_BD') || cueSet.has('proof_ii7') || cueSet.has('proof_i47_ABD') || cueSet.has('proof_i47_ADC'));
+
+    const acuteArc = document.getElementById('grp-acute-B');
+    if (acuteArc) acuteArc.classList.toggle('angle-arc-active', cueSet.has('acute_triangle'));
+
+    const activeBadgeParts = [];
+    if (showNom) activeBadgeParts.push('□ ΑΓ²');
+    if (showGen) activeBadgeParts.push('□ ΓΒ², ΒΑ²');
+    if (showDat) activeBadgeParts.push('2·ΓΒ·ΒΔ');
+    if (cueSet.has('perp_AD')) activeBadgeParts.push('ΑΔ ⊥ ΓΒ');
+    if (cueSet.has('proof_i47_ABD')) activeBadgeParts.push('△ ΑΒΔ');
+    if (cueSet.has('proof_i47_ADC')) activeBadgeParts.push('△ ΑΔΓ');
+    activeLettersBadge.textContent = activeBadgeParts.length ? activeBadgeParts.join(' · ') : '△ ΑΒΓ';
+  }
+
+  function highlightActiveWord(wordIndex, wordNorm, isGreek) {
+    if (!wordNorm) return;
+    // 1. Highlight in subtitle box (#greekSub and #englishSub)
+    const subContainer = isGreek ? greekSub : englishSub;
+    const subSelector = isGreek ? '.w-tok.greek-tok' : '.w-tok.eng-tok';
+    const subSpans = Array.from(subContainer.querySelectorAll(subSelector));
+    if (subSpans.length > 0) {
+      // Find best matching span near current cursor so repeated words highlight in order
+      let matchedIdx = -1;
+      const cursor = isGreek ? greekOccurrenceCursor : engOccurrenceCursor;
+      for (let offset = 0; offset < subSpans.length; offset++) {
+        const candidate = cursor + offset;
+        if (candidate < subSpans.length && subSpans[candidate].dataset.norm === wordNorm) {
+          matchedIdx = candidate;
+          break;
+        }
+      }
+      if (matchedIdx === -1) {
+        matchedIdx = subSpans.findIndex(sp => sp.dataset.norm === wordNorm);
+      }
+      if (matchedIdx !== -1) {
+        if (isGreek) greekOccurrenceCursor = matchedIdx;
+        else engOccurrenceCursor = matchedIdx;
+        subSpans.forEach((sp, i) => {
+          sp.classList.toggle('speaking', i === matchedIdx);
+          sp.classList.toggle('spoken', i < matchedIdx);
+        });
+      }
+    }
+
+    // 2. Also highlight matching word and row on the Slide Card (#slideBody)
+    const slideSpans = Array.from(slideBody.querySelectorAll(isGreek ? '.w-tok.greek-tok' : '.w-tok.eng-tok'));
+    let activeRowEl = null;
+    slideSpans.forEach(sp => {
+      const isMatch = sp.dataset.norm === wordNorm;
+      sp.classList.toggle('speaking', isMatch);
+      if (isMatch && !activeRowEl) {
+        activeRowEl = sp.closest('.slide-row');
+      }
+    });
+    if (activeRowEl) {
+      Array.from(slideBody.querySelectorAll('.slide-row')).forEach(r => {
+        r.classList.toggle('active-row', r === activeRowEl);
+      });
+    }
+  }
+
+  function clearWordHighlights() {
+    greekOccurrenceCursor = 0;
+    engOccurrenceCursor = 0;
+    document.querySelectorAll('.w-tok.speaking, .w-tok.spoken').forEach(el => {
+      el.classList.remove('speaking', 'spoken');
+    });
+    document.querySelectorAll('.slide-row.active-row').forEach(el => {
+      el.classList.remove('active-row');
+    });
   }
 
   function renderSlideCard(pres) {
@@ -798,41 +994,25 @@ AVATAR_HTML = """<!DOCTYPE html>
 
     let html = '';
     if (s.header) {
-      html += `<div style="font-size:23px;color:#b8ccf0;font-weight:600;margin-bottom:4px;">${formatMdInline(s.header)}</div>`;
+      html += `<div style="font-size:22px;color:#b8ccf0;font-weight:600;margin-bottom:4px;">${tokenizeHtmlWithSpans(s.header, true)}</div>`;
     }
     if (s.layout === 'table_two_col') {
       const h0 = (s.headers && s.headers[0]) || 'II.12, obtuse';
       const h1 = (s.headers && s.headers[1]) || 'II.13, acute';
-      html += `<div class="slide-two-col" style="border-bottom:1px solid rgba(229,196,103,0.3);padding-bottom:8px;font-size:21px;color:#b8ccf0;font-weight:700;"><div>${h0}</div><div>${h1}</div></div>`;
+      html += `<div class="slide-two-col" style="border-bottom:1px solid rgba(229,196,103,0.3);padding-bottom:8px;font-size:20px;color:#b8ccf0;font-weight:700;"><div>${h0}</div><div>${h1}</div></div>`;
       (s.rows || []).forEach(r => {
-        html += `<div class="slide-row slide-two-col" style="padding:10px 18px;"><div class="slide-row-greek" style="font-size:24px;margin:0;">${formatMdInline(r.greek)}</div><div class="slide-row-greek" style="font-size:24px;margin:0;color:#ffffff;">${formatMdInline(r.english)}</div></div>`;
+        html += `<div class="slide-row slide-two-col" style="padding:10px 18px;"><div class="slide-row-greek" style="font-size:23px;margin:0;">${tokenizeHtmlWithSpans(r.greek, true)}</div><div class="slide-row-greek" style="font-size:23px;margin:0;color:#ffffff;">${tokenizeHtmlWithSpans(r.english, true)}</div></div>`;
       });
     } else {
       (s.rows || []).forEach(r => {
         html += `<div class="slide-row">
-          <div class="slide-row-greek">${formatMdInline(r.greek)}</div>
-          ${r.english ? `<div class="slide-row-eng">${formatMdInline(r.english)}</div>` : ''}
+          <div class="slide-row-greek">${tokenizeHtmlWithSpans(r.greek, true)}</div>
+          ${r.english ? `<div class="slide-row-eng">${tokenizeHtmlWithSpans(r.english, false)}</div>` : ''}
         </div>`;
       });
     }
     slideBody.innerHTML = html;
   }
-
-  function animateWaveform() {
-    smoothRms = smoothRms * 0.72 + currentRms * 0.28;
-    wavePhase += 0.18;
-    const isSpeaking = smoothRms > 0.015;
-    voiceStatusLabel.textContent = isSpeaking ? 'Speaking · Erasmian Greek / en-AU' : 'Standby · Elements II.13';
-    for (let i = 0; i < NUM_WAVE_BARS; i++) {
-      const centerWeight = 1.0 - Math.abs(i - NUM_WAVE_BARS / 2) / (NUM_WAVE_BARS / 2);
-      const harmonic = Math.abs(Math.sin(wavePhase + i * 0.45));
-      const h = isSpeaking ? Math.max(4, Math.min(28, 4 + smoothRms * 52 * (0.4 + 0.6 * centerWeight) * (0.5 + 0.5 * harmonic))) : 4;
-      waveBars[i].style.height = `${h.toFixed(1)}px`;
-      waveBars[i].style.opacity = isSpeaking ? (0.55 + 0.45 * harmonic).toFixed(2) : '0.32';
-    }
-    requestAnimationFrame(animateWaveform);
-  }
-  requestAnimationFrame(animateWaveform);
 
   function connectWS() {
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -844,11 +1024,26 @@ AVATAR_HTML = """<!DOCTYPE html>
       } else if (msg.type === 'presentation_state') {
         renderSlideCard(msg.presentation);
       } else if (msg.type === 'amplitude') {
-        currentRms = msg.rms || 0;
+        if (msg.diagram_cues && msg.diagram_cues.length) {
+          applyDiagramCues(msg.diagram_cues, msg.cue_banner || '');
+        }
+        if (typeof msg.word_index === 'number' && msg.word_index !== lastWordIdx) {
+          lastWordIdx = msg.word_index;
+          highlightActiveWord(msg.word_index, msg.norm || '', !!msg.is_greek);
+        }
       } else if (msg.type === 'subtitle') {
-        greekSub.textContent = msg.greek || '';
-        englishSub.textContent = msg.english || '';
-        highlightDiagramLetters(msg.greek || '', msg.english || '');
+        lastWordIdx = -1;
+        greekOccurrenceCursor = 0;
+        engOccurrenceCursor = 0;
+        activeWordTimings = msg.word_timings || [];
+        greekSub.innerHTML = tokenizeHtmlWithSpans(msg.greek || '', true);
+        englishSub.innerHTML = tokenizeHtmlWithSpans(msg.spoken || msg.english || '', false);
+        if (activeWordTimings.length > 0 && activeWordTimings[0].diagram_cues) {
+          applyDiagramCues(activeWordTimings[0].diagram_cues, activeWordTimings[0].cue_banner || '');
+        }
+        if (!msg.speaking) {
+          clearWordHighlights();
+        }
         if (msg.total_sentences && msg.total_sentences > 0 && msg.speaking) {
           progressPill.style.display = 'block';
           progressPill.textContent = `Speaking ${msg.sentence_index + 1} / ${msg.total_sentences}`;
@@ -858,8 +1053,7 @@ AVATAR_HTML = """<!DOCTYPE html>
       } else if (msg.type === 'turn_update' && msg.turn && msg.turn.status === 'speaking') {
         slideTitle.textContent = 'Professor Q&A · Elements II.13';
         slideBadge.textContent = 'Live Q&A';
-        slideBody.innerHTML = `<div class="slide-row"><div class="slide-row-eng" style="color:#9aa8c2;margin-bottom:8px;">Question: ${msg.turn.transcript || ''}</div><div class="slide-row-greek">${msg.turn.greek || ''}</div><div class="slide-row-eng" style="margin-top:8px;">${msg.turn.english || ''}</div></div>`;
-        highlightDiagramLetters(msg.turn.greek || '', msg.turn.english || '');
+        slideBody.innerHTML = `<div class="slide-row active-row"><div class="slide-row-eng" style="color:#9aa8c2;margin-bottom:8px;">Question: ${msg.turn.transcript || ''}</div><div class="slide-row-greek">${tokenizeHtmlWithSpans(msg.turn.greek || '', true)}</div><div class="slide-row-eng" style="margin-top:8px;">${tokenizeHtmlWithSpans(msg.turn.english || '', false)}</div></div>`;
       }
     };
     ws.onclose = () => setTimeout(connectWS, 1000);

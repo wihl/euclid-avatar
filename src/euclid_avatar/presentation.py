@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import json
 from pathlib import Path
 import time
 from typing import Any
@@ -15,12 +16,14 @@ from .tts import (
     SAMPLE_RATE,
     GreekTTSAdapter,
     SentenceAudioChunk,
+    _extract_phrase_word_timings,
     read_wav_mono24k,
+    strip_prosody_markers,
     write_wav_mono24k,
 )
 
-INTER_SEGMENT_PAUSE_S = 0.45
-INTER_SLIDE_PAUSE_S = 0.85
+INTER_SEGMENT_PAUSE_S = 0.32
+INTER_SLIDE_PAUSE_S = 0.65
 
 
 @dataclass
@@ -39,6 +42,7 @@ class PresentationSegment:
     duration_s: float = 0.0
     cached: bool = False
     wav_path: str = ""
+    word_timings: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass
@@ -82,10 +86,11 @@ class PresentationSlide:
                     "rate": s.rate,
                     "greek": s.greek,
                     "english": s.english,
-                    "spoken": s.spoken,
+                    "spoken": strip_prosody_markers(s.spoken),
                     "duration_s": round(s.duration_s, 2),
                     "cached": s.cached,
                     "wav_path": s.wav_path,
+                    "word_timings": s.word_timings,
                 }
                 for s in self.segments
             ],
@@ -140,6 +145,31 @@ def segment_cache_wav_path(cfg: Config, seg_id: str, voice: str) -> Path:
     return cfg.presentation_cache_dir / f"{seg_id}_{safe_voice}.wav"
 
 
+def segment_cache_timings_path(cfg: Config, seg_id: str, voice: str) -> Path:
+    safe_voice = voice.replace("/", "_")
+    return cfg.presentation_cache_dir / f"{seg_id}_{safe_voice}.timings.json"
+
+
+def _load_or_build_timings(
+    timings_file: Path, spoken: str, pcm: np.ndarray, sr: int
+) -> list[dict[str, Any]]:
+    if timings_file.exists():
+        try:
+            loaded = json.loads(timings_file.read_text(encoding="utf-8"))
+            if isinstance(loaded, list) and loaded:
+                return loaded
+        except Exception:
+            pass
+    timings = _extract_phrase_word_timings(spoken, pcm, 0.0, sr, 0, spoken)
+    try:
+        timings_file.write_text(
+            json.dumps(timings, ensure_ascii=False), encoding="utf-8"
+        )
+    except Exception:
+        pass
+    return timings
+
+
 def load_presentation_deck(
     cfg: Config, voice: str | None = None
 ) -> PresentationDeck:
@@ -154,7 +184,7 @@ def load_presentation_deck(
     active_voice = (
         voice
         or cfg.tts_voice_english
-        or str(pres.get("voice_english", "en-AU-Neural2-D"))
+        or str(pres.get("voice_english", "en-AU-Chirp3-HD-Charon"))
     )
 
     slides: list[PresentationSlide] = []
@@ -165,13 +195,21 @@ def load_presentation_deck(
         segs: list[PresentationSegment] = []
         for seg_idx, seg_raw in enumerate(s_raw.get("segments", [])):
             seg_id = str(seg_raw["id"])
+            spoken_raw = " ".join(str(seg_raw.get("spoken", "")).split())
             wav_file = segment_cache_wav_path(cfg, seg_id, active_voice)
+            timings_file = segment_cache_timings_path(
+                cfg, seg_id, active_voice
+            )
             dur_s = 0.0
+            timings: list[dict[str, Any]] = []
             is_cached = wav_file.exists()
             if is_cached:
                 try:
                     pcm, sr = read_wav_mono24k(wav_file)
                     dur_s = round(len(pcm) / float(sr), 2)
+                    timings = _load_or_build_timings(
+                        timings_file, spoken_raw, pcm, sr
+                    )
                 except Exception:
                     is_cached = False
             segs.append(
@@ -184,10 +222,11 @@ def load_presentation_deck(
                     rate=float(seg_raw.get("rate", cfg.tts_rate_english)),
                     greek=str(seg_raw.get("greek", "")).strip(),
                     english=str(seg_raw.get("english", "")).strip(),
-                    spoken=" ".join(str(seg_raw.get("spoken", "")).split()),
+                    spoken=spoken_raw,
                     duration_s=dur_s,
                     cached=is_cached,
                     wav_path=str(wav_file) if is_cached else "",
+                    word_timings=timings,
                 )
             )
             global_idx += 1
@@ -234,14 +273,17 @@ def synthesize_or_load_segment(
     """Load pre-synthesized WAV from cache or synthesize and cache on demand."""
     active_voice = voice or cfg.tts_voice_english
     wav_file = segment_cache_wav_path(cfg, seg.id, active_voice)
+    timings_file = segment_cache_timings_path(cfg, seg.id, active_voice)
     if wav_file.exists() and not force:
         t0 = time.perf_counter()
-        pcm, _ = read_wav_mono24k(wav_file)
+        pcm, sr = read_wav_mono24k(wav_file)
         elapsed_ms = (time.perf_counter() - t0) * 1000.0
         dur_s = round(len(pcm) / float(SAMPLE_RATE), 3)
+        timings = _load_or_build_timings(timings_file, seg.spoken, pcm, sr)
         seg.duration_s = dur_s
         seg.cached = True
         seg.wav_path = str(wav_file)
+        seg.word_timings = timings
         return SentenceAudioChunk(
             index=seg.global_index,
             english=seg.english,
@@ -251,6 +293,7 @@ def synthesize_or_load_segment(
             synthesis_ms=round(elapsed_ms, 2),
             backend="google_au_bilingual_cached",
             voice=active_voice,
+            word_timings=timings,
         )
 
     chunk = tts.synthesize_bilingual_segment(
@@ -262,9 +305,16 @@ def synthesize_or_load_segment(
         rate=seg.rate,
     )
     write_wav_mono24k(wav_file, chunk.pcm, SAMPLE_RATE)
+    try:
+        timings_file.write_text(
+            json.dumps(chunk.word_timings, ensure_ascii=False), encoding="utf-8"
+        )
+    except Exception:
+        pass
     seg.duration_s = chunk.duration_s
     seg.cached = True
     seg.wav_path = str(wav_file)
+    seg.word_timings = chunk.word_timings
     return chunk
 
 
