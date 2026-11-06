@@ -304,63 +304,95 @@ AVATAR_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Euclid of Alexandria · Elements II.13 Presentation & Q&A (1920x1080)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Euclid of Alexandria · Elements II.13 (16:9 Zoom HD)</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
-    width: 1920px;
-    height: 1080px;
+    width: 100vw;
+    height: 100vh;
     overflow: hidden;
-    background: radial-gradient(circle at 30% 40%, #1c2536 0%, #0d121c 65%, #070a10 100%);
+    background: #070a10;
     font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
     color: #fdfaf2;
     user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .stage {
-    position: relative;
+  /* Standard 16:9 Zoom HD stage (1920x1080 internal grid, auto-scaled to fit viewport) */
+  .stage-viewport {
     width: 1920px;
     height: 1080px;
+    aspect-ratio: 16 / 9;
+    position: relative;
+    transform-origin: center center;
+    background: radial-gradient(circle at 30% 40%, #1c2536 0%, #0d121c 65%, #070a10 100%);
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: space-between;
-    padding: 24px 56px 30px 56px;
+    padding: 24px 44px 28px 44px;
+    overflow: hidden;
   }
   .header-banner {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    padding: 10px 32px;
+    height: 56px;
+    padding: 0 28px;
     border: 1.5px solid rgba(218, 181, 92, 0.45);
     border-radius: 999px;
-    background: rgba(12, 17, 28, 0.86);
-    letter-spacing: 0.06em;
-    font-size: 21px;
+    background: rgba(12, 17, 28, 0.88);
+    letter-spacing: 0.05em;
+    font-size: 20px;
     color: #e5c467;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+    flex-shrink: 0;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
   }
   .header-banner span.sub {
     color: #b7c2d6;
-    font-size: 18px;
+    font-size: 17px;
     letter-spacing: 0.02em;
+  }
+  .aspect-btn {
+    background: rgba(27, 38, 59, 0.9);
+    border: 1px solid rgba(229, 196, 103, 0.55);
+    color: #f0d078;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.2s ease, background 0.2s ease;
+  }
+  .aspect-btn:hover {
+    opacity: 1;
+    background: rgba(46, 66, 102, 0.95);
   }
   .main-row {
     width: 100%;
-    height: 690px;
+    height: 948px;
     display: grid;
-    grid-template-columns: 580px 1fr;
+    grid-template-columns: 740px 1fr;
     gap: 28px;
     align-items: stretch;
   }
   .diagram-card {
     position: relative;
-    width: 580px;
-    height: 690px;
+    width: 740px;
+    height: 948px;
     background: rgba(11, 16, 26, 0.94);
     border: 2px solid rgba(229, 196, 103, 0.55);
     border-radius: 22px;
-    padding: 18px 24px;
+    padding: 22px 28px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -371,22 +403,23 @@ AVATAR_HTML = """<!DOCTYPE html>
     justify-content: space-between;
     align-items: center;
     border-bottom: 1.5px solid rgba(229, 196, 103, 0.32);
-    padding-bottom: 8px;
+    padding-bottom: 12px;
   }
   .diagram-title {
-    font-size: 22px;
+    font-size: 25px;
     font-weight: 700;
     color: #f3d47c;
     letter-spacing: 0.02em;
   }
   .diagram-sub {
-    font-size: 14px;
+    font-size: 15.5px;
     color: #9aa8c2;
     font-family: -apple-system, sans-serif;
+    margin-top: 2px;
   }
   svg.ii13-fig {
     width: 100%;
-    height: 430px;
+    height: 610px;
     overflow: visible;
   }
   .geo-area {
@@ -426,13 +459,13 @@ AVATAR_HTML = """<!DOCTYPE html>
   }
   .cue-banner {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 14.5px;
+    font-size: 16.5px;
     font-weight: 600;
     color: #fff3c4;
     background: linear-gradient(90deg, rgba(229, 196, 103, 0.22) 0%, rgba(56, 139, 253, 0.18) 100%);
     border: 1.5px solid rgba(243, 212, 124, 0.55);
-    border-radius: 10px;
-    padding: 8px 12px;
+    border-radius: 12px;
+    padding: 11px 16px;
     text-align: center;
     letter-spacing: 0.01em;
     transition: all 0.25s ease;
@@ -440,22 +473,22 @@ AVATAR_HTML = """<!DOCTYPE html>
   .case-legend {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 7px;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-size: 13.5px;
-    background: rgba(18, 26, 42, 0.82);
+    font-size: 15.5px;
+    background: rgba(18, 26, 42, 0.84);
     border: 1px solid rgba(229, 196, 103, 0.28);
-    border-radius: 12px;
-    padding: 8px 12px;
+    border-radius: 14px;
+    padding: 12px 16px;
   }
   .legend-item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     color: #dce5f5;
-    padding: 3px 6px;
+    padding: 4px 8px;
     border-radius: 6px;
-    border-left: 3px solid transparent;
+    border-left: 3.5px solid transparent;
     transition: background 0.22s ease, border-color 0.22s ease, transform 0.22s ease;
   }
   .legend-item.active-leg {
@@ -465,18 +498,18 @@ AVATAR_HTML = """<!DOCTYPE html>
     transform: translateX(4px);
   }
   .legend-swatch {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 3px;
     display: inline-block;
     flex-shrink: 0;
   }
   .slide-card {
-    height: 690px;
+    height: 948px;
     background: rgba(11, 16, 26, 0.92);
     border: 2px solid rgba(229, 196, 103, 0.55);
     border-radius: 22px;
-    padding: 24px 34px;
+    padding: 28px 38px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -488,11 +521,11 @@ AVATAR_HTML = """<!DOCTYPE html>
     justify-content: space-between;
     align-items: center;
     border-bottom: 1.5px solid rgba(229, 196, 103, 0.35);
-    padding-bottom: 12px;
-    margin-bottom: 16px;
+    padding-bottom: 14px;
+    margin-bottom: 20px;
   }
   .slide-title {
-    font-size: 32px;
+    font-size: 36px;
     font-weight: 700;
     color: #f3d47c;
   }
@@ -500,9 +533,9 @@ AVATAR_HTML = """<!DOCTYPE html>
     background: #1b263b;
     border: 1.5px solid #e5c467;
     color: #f0d078;
-    padding: 5px 16px;
+    padding: 6px 18px;
     border-radius: 999px;
-    font-size: 16px;
+    font-size: 17px;
     font-family: -apple-system, sans-serif;
     font-weight: 600;
   }
@@ -511,13 +544,13 @@ AVATAR_HTML = """<!DOCTYPE html>
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 14px;
+    gap: 18px;
   }
   .slide-row {
     background: rgba(23, 33, 52, 0.72);
     border-left: 4px solid rgba(229, 196, 103, 0.55);
-    border-radius: 10px;
-    padding: 13px 18px;
+    border-radius: 12px;
+    padding: 18px 22px;
     transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
   }
   .slide-row.active-row {
@@ -528,117 +561,62 @@ AVATAR_HTML = """<!DOCTYPE html>
   }
   .slide-row-greek {
     font-family: "New Athena Unicode", "Gentium Plus", "Palatino Linotype", Georgia, serif;
-    font-size: 26px;
-    line-height: 1.42;
+    font-size: 30px;
+    line-height: 1.48;
     color: #f7df94;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
   }
   .slide-row-eng {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    font-size: 21px;
-    line-height: 1.36;
+    font-size: 23px;
+    line-height: 1.42;
     color: #e4ecf7;
   }
   .slide-two-col {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 20px;
   }
-  /* Word-by-word highlight tokens */
+  /* Single-word sequential highlight tokens */
   .w-tok {
     display: inline-block;
     border-radius: 6px;
-    padding: 0 3px;
+    padding: 0 4px;
     margin: 0 -1px;
-    transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease;
+    transition: background 0.1s ease, color 0.1s ease, transform 0.1s ease, box-shadow 0.1s ease;
   }
   .w-tok.greek-tok.speaking {
-    background: linear-gradient(180deg, rgba(243, 212, 124, 0.45) 0%, rgba(212, 160, 48, 0.38) 100%);
+    background: linear-gradient(180deg, rgba(243, 212, 124, 0.52) 0%, rgba(212, 160, 48, 0.44) 100%);
     color: #ffffff !important;
     font-weight: 700;
-    transform: scale(1.09) translateY(-1px);
-    box-shadow: 0 0 16px rgba(243, 212, 124, 0.75);
-    border-bottom: 2.5px solid #ffd97d;
+    transform: scale(1.08) translateY(-1px);
+    box-shadow: 0 0 18px rgba(243, 212, 124, 0.85);
+    border-bottom: 3px solid #ffd97d;
   }
   .w-tok.greek-tok.spoken {
     color: #fff6d6;
-    border-bottom: 1.5px solid rgba(243, 212, 124, 0.42);
+    border-bottom: 1.5px solid rgba(243, 212, 124, 0.35);
   }
   .w-tok.eng-tok.speaking {
-    background: rgba(88, 166, 255, 0.34);
+    background: rgba(88, 166, 255, 0.38);
     color: #ffe58f !important;
     transform: scale(1.05);
-    box-shadow: 0 0 12px rgba(88, 166, 255, 0.5);
-    border-bottom: 2px solid #79c0ff;
+    box-shadow: 0 0 14px rgba(88, 166, 255, 0.6);
+    border-bottom: 2.5px solid #79c0ff;
   }
   .w-tok.eng-tok.spoken {
     color: #d8e8ff;
   }
-  .subtitle-wrapper {
-    position: relative;
-    width: 100%;
-  }
-  .subtitle-box {
-    width: 100%;
-    min-height: 205px;
-    background: rgba(8, 11, 18, 0.95);
-    border: 2.5px solid rgba(229, 196, 103, 0.68);
-    border-radius: 20px;
-    padding: 18px 36px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85);
-    z-index: 5;
-  }
-  .greek-sub {
-    font-family: "New Athena Unicode", "Gentium Plus", "Palatino Linotype", Georgia, serif;
-    font-size: 29px;
-    line-height: 1.42;
-    color: #f0d078;
-    margin-bottom: 10px;
-    font-weight: 500;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
-    max-width: 1720px;
-  }
-  .english-sub {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 32px;
-    line-height: 1.34;
-    font-weight: 700;
-    color: #ffffff;
-    text-shadow:
-      -2px -2px 0 #000,
-       2px -2px 0 #000,
-      -2px  2px 0 #000,
-       2px  2px 0 #000,
-       0px  4px 12px rgba(0, 0, 0, 0.95);
-    max-width: 1720px;
-  }
-  .progress-pill {
-    position: absolute;
-    top: -16px;
-    right: 36px;
-    background: #1b263b;
-    border: 1.5px solid #e5c467;
-    color: #f0d078;
-    padding: 4px 18px;
-    border-radius: 999px;
-    font-size: 16px;
-    font-family: -apple-system, sans-serif;
-    font-weight: 600;
-    display: none;
-    z-index: 10;
-  }
 </style>
 </head>
 <body>
-  <div class="stage">
+  <div class="stage-viewport" id="stageViewport">
     <div class="header-banner">
       <span>ΕΥΚΛΕΙΔΗΣ Ο ΑΛΕΞΑΝΔΡΕΥΣ · ELEMENTS II.13</span>
-      <span class="sub">Group 4 · Connor Pearson (Diagram) · Euclid / David Wihl (Greek) · Zahid Syed (Proof)</span>
+      <div class="header-right">
+        <span class="sub">Group 4 · Connor Pearson (Diagram) · Euclid / David Wihl (Greek) · Zahid Syed (Proof)</span>
+        <button class="aspect-btn" onclick="lockWindowTo16x9()" title="Resize window to exact 16:9 Zoom HD aspect ratio">16:9 Zoom Fit</button>
+      </div>
     </div>
 
     <div class="main-row">
@@ -648,7 +626,7 @@ AVATAR_HTML = """<!DOCTYPE html>
             <div class="diagram-title">Elements II.13 · Interactive Figure</div>
             <div class="diagram-sub">ΑΓ² = ΓΒ² + ΒΑ² − 2·ΓΒ·ΒΔ (Acute ∠Β, Altitude ΑΔ ⊥ ΓΒ)</div>
           </div>
-          <div class="slide-pill" id="activeLettersBadge" style="font-size:14px;">△ ΑΒΓ</div>
+          <div class="slide-pill" id="activeLettersBadge" style="font-size:15px;">△ ΑΒΓ</div>
         </div>
 
         <svg class="ii13-fig" viewBox="0 0 500 395" xmlns="http://www.w3.org/2000/svg">
@@ -805,30 +783,60 @@ AVATAR_HTML = """<!DOCTYPE html>
         <div class="slide-body" id="slideBody"></div>
       </div>
     </div>
-
-    <div class="subtitle-wrapper">
-      <div class="progress-pill" id="progressPill">Segment 1 / 13</div>
-      <div class="subtitle-box">
-        <div class="greek-sub" id="greekSub">Ἐν τοῖς ὀξυγωνίοις τριγώνοις τὸ ἀπὸ τῆς τὴν ὀξεῖαν γωνίαν ὑποτεινούσης πλευρᾶς τετράγωνον ἔλαττόν ἐστι...</div>
-        <div class="english-sub" id="englishSub">Euclid, Elements II.13 — Ready for 5-Minute Presentation & Professor Q&A</div>
-      </div>
-    </div>
   </div>
 
 <script>
-  const greekSub = document.getElementById('greekSub');
-  const englishSub = document.getElementById('englishSub');
-  const progressPill = document.getElementById('progressPill');
+  const stageViewport = document.getElementById('stageViewport');
   const slideTitle = document.getElementById('slideTitle');
   const slideBadge = document.getElementById('slideBadge');
   const slideBody = document.getElementById('slideBody');
   const activeLettersBadge = document.getElementById('activeLettersBadge');
   const figActiveCueLabel = document.getElementById('figActiveCueLabel');
 
-  let activeWordTimings = [];
+  // Auto-scale 1920x1080 (16:9) stage to fit any browser window or OBS canvas cleanly
+  function fitStageToWindow() {
+    const vw = window.innerWidth || 1920;
+    const vh = window.innerHeight || 1080;
+    const sx = vw / 1920;
+    const sy = vh / 1080;
+    // If window is within 6% of 16:9, stretch both axes cleanly so zero edge bars ever appear
+    if (Math.abs((vw / vh) - (16 / 9)) < 0.11) {
+      stageViewport.style.transform = `scale(${sx.toFixed(5)}, ${sy.toFixed(5)})`;
+    } else {
+      const scale = Math.min(sx, sy);
+      stageViewport.style.transform = `scale(${scale.toFixed(5)})`;
+    }
+  }
+  window.addEventListener('resize', fitStageToWindow);
+  fitStageToWindow();
+
+  function lockWindowTo16x9() {
+    // Resize popup/window so inner content viewport is exact 16:9 (e.g., 1440x810 or 1280x720)
+    const targetW = Math.min(1600, Math.max(1280, window.innerWidth || 1440));
+    const targetH = Math.round(targetW * 9 / 16);
+    const chromeW = (window.outerWidth || targetW) - (window.innerWidth || targetW);
+    const chromeH = (window.outerHeight || targetH) - (window.innerHeight || targetH);
+    try {
+      window.resizeTo(targetW + Math.max(0, chromeW), targetH + Math.max(0, chromeH));
+    } catch (e) {}
+    setTimeout(fitStageToWindow, 60);
+  }
+  if (location.search.includes('zoom16x9=1')) {
+    setTimeout(lockWindowTo16x9, 80);
+  }
+
+  const ENG_STOPWORDS = new Set([
+    'the','a','an','of','in','on','to','by','for','with','and','or','is','are',
+    'it','that','this','from','at','as','be','one','two','all','up'
+  ]);
+
+  let currentSlideNumber = -1;
+  let slideTokens = [];
+  let wordToSlideIdx = [];
+  let slideGreekCursor = 0;
+  let slideEngCursor = 0;
+  let currentSpeakingEl = null;
   let lastWordIdx = -1;
-  let greekOccurrenceCursor = 0;
-  let engOccurrenceCursor = 0;
 
   function normalizeWordJS(str) {
     if (!str) return '';
@@ -843,7 +851,6 @@ AVATAR_HTML = """<!DOCTYPE html>
 
   function tokenizeHtmlWithSpans(rawText, defaultGreek) {
     if (!rawText) return '';
-    // First convert **bold** and *italic* while wrapping individual words in .w-tok spans
     const cleaned = rawText.replace(/\\*\\*(.+?)\\*\\*/g, '⟪B⟫$1⟪/B⟫').replace(/\\*(.+?)\\*/g, '⟪I⟫$1⟪/I⟫');
     const parts = cleaned.split(/(\\s+|⟪\\/?[BI]⟫)/);
     let out = '';
@@ -861,6 +868,108 @@ AVATAR_HTML = """<!DOCTYPE html>
       out += `<span class="${cls}" data-norm="${norm}">${p}</span>`;
     }
     return out;
+  }
+
+  function indexSlideTokens() {
+    const els = Array.from(slideBody.querySelectorAll('.w-tok'));
+    slideTokens = els.map((el, idx) => {
+      el.dataset.tokIdx = String(idx);
+      return {
+        el,
+        idx,
+        norm: el.dataset.norm || '',
+        isGreek: el.classList.contains('greek-tok'),
+        rowEl: el.closest('.slide-row'),
+      };
+    });
+  }
+
+  function buildWordToSlideTokenMap(wordTimings) {
+    wordToSlideIdx = new Array(wordTimings.length).fill(-1);
+    if (!slideTokens.length || !wordTimings.length) return;
+
+    const grToks = slideTokens.filter(t => t.isGreek);
+    const enToks = slideTokens.filter(t => !t.isGreek);
+
+    if (slideGreekCursor >= Math.max(1, grToks.length - 1)) {
+      slideGreekCursor = 0;
+    }
+    if (slideEngCursor >= Math.max(1, enToks.length - 2)) {
+      slideEngCursor = 0;
+    }
+
+    let prevEnMatched = false;
+    let i = 0;
+    const n = wordTimings.length;
+
+    while (i < n) {
+      const w = wordTimings[i];
+      if (w.is_greek) {
+        prevEnMatched = false;
+        let j = i;
+        while (j < n && wordTimings[j].is_greek) j++;
+        const run = [];
+        for (let k = i; k < j; k++) run.push(wordTimings[k].norm || '');
+
+        let bestC = -1;
+        let bestScore = -1e9;
+        for (let c = 0; c < grToks.length; c++) {
+          if (grToks[c].norm !== run[0]) continue;
+          let mLen = 0;
+          while (mLen < run.length && (c + mLen) < grToks.length) {
+            if (grToks[c + mLen].norm === run[mLen]) mLen++;
+            else break;
+          }
+          const dist = (c >= slideGreekCursor)
+            ? (c - slideGreekCursor)
+            : (grToks.length - slideGreekCursor + c + 5);
+          const score = mLen * 100.0 - dist * 1.5;
+          if (score > bestScore) {
+            bestScore = score;
+            bestC = c;
+          }
+        }
+        if (bestC !== -1) {
+          let cur = bestC;
+          for (let k = i; k < j; k++) {
+            const wn = wordTimings[k].norm || '';
+            for (let look = cur; look < Math.min(grToks.length, cur + 3); look++) {
+              if (grToks[look].norm === wn) {
+                wordToSlideIdx[k] = grToks[look].idx;
+                cur = look + 1;
+                slideGreekCursor = cur;
+                break;
+              }
+            }
+          }
+        }
+        i = j;
+      } else {
+        const wn = w.norm || '';
+        const nextWn = (i + 1 < n && !wordTimings[i + 1].is_greek) ? (wordTimings[i + 1].norm || '') : '';
+        let matched = -1;
+        for (let off = 0; off < enToks.length; off++) {
+          const c = slideEngCursor + off;
+          if (c >= enToks.length) break;
+          if (enToks[c].norm !== wn) continue;
+          const adjCont = (off <= 1 && prevEnMatched);
+          const twoWord = (nextWn && (c + 1) < enToks.length && enToks[c + 1].norm === nextWn);
+          const distinctive = (wn.length >= 5 && !ENG_STOPWORDS.has(wn) && off <= 10);
+          if (adjCont || twoWord || distinctive) {
+            matched = c;
+            break;
+          }
+        }
+        if (matched !== -1) {
+          wordToSlideIdx[i] = enToks[matched].idx;
+          slideEngCursor = matched + 1;
+          prevEnMatched = true;
+        } else {
+          prevEnMatched = false;
+        }
+        i++;
+      }
+    }
   }
 
   function applyDiagramCues(cues, bannerText) {
@@ -927,56 +1036,31 @@ AVATAR_HTML = """<!DOCTYPE html>
     activeLettersBadge.textContent = activeBadgeParts.length ? activeBadgeParts.join(' · ') : '△ ΑΒΓ';
   }
 
-  function highlightActiveWord(wordIndex, wordNorm, isGreek) {
-    if (!wordNorm) return;
-    // 1. Highlight in subtitle box (#greekSub and #englishSub)
-    const subContainer = isGreek ? greekSub : englishSub;
-    const subSelector = isGreek ? '.w-tok.greek-tok' : '.w-tok.eng-tok';
-    const subSpans = Array.from(subContainer.querySelectorAll(subSelector));
-    if (subSpans.length > 0) {
-      // Find best matching span near current cursor so repeated words highlight in order
-      let matchedIdx = -1;
-      const cursor = isGreek ? greekOccurrenceCursor : engOccurrenceCursor;
-      for (let offset = 0; offset < subSpans.length; offset++) {
-        const candidate = cursor + offset;
-        if (candidate < subSpans.length && subSpans[candidate].dataset.norm === wordNorm) {
-          matchedIdx = candidate;
-          break;
-        }
-      }
-      if (matchedIdx === -1) {
-        matchedIdx = subSpans.findIndex(sp => sp.dataset.norm === wordNorm);
-      }
-      if (matchedIdx !== -1) {
-        if (isGreek) greekOccurrenceCursor = matchedIdx;
-        else engOccurrenceCursor = matchedIdx;
-        subSpans.forEach((sp, i) => {
-          sp.classList.toggle('speaking', i === matchedIdx);
-          sp.classList.toggle('spoken', i < matchedIdx);
-        });
-      }
+  function highlightActiveWord(wordIndex) {
+    const targetIdx = wordToSlideIdx[wordIndex];
+    if (typeof targetIdx !== 'number' || targetIdx < 0 || targetIdx >= slideTokens.length) {
+      return;
     }
-
-    // 2. Also highlight matching word and row on the Slide Card (#slideBody)
-    const slideSpans = Array.from(slideBody.querySelectorAll(isGreek ? '.w-tok.greek-tok' : '.w-tok.eng-tok'));
-    let activeRowEl = null;
-    slideSpans.forEach(sp => {
-      const isMatch = sp.dataset.norm === wordNorm;
-      sp.classList.toggle('speaking', isMatch);
-      if (isMatch && !activeRowEl) {
-        activeRowEl = sp.closest('.slide-row');
-      }
-    });
-    if (activeRowEl) {
+    // Always remove .speaking from the previous single active word so ONLY ONE word is ever highlighted
+    if (currentSpeakingEl && currentSpeakingEl !== slideTokens[targetIdx].el) {
+      currentSpeakingEl.classList.remove('speaking');
+      currentSpeakingEl.classList.add('spoken');
+    }
+    const tok = slideTokens[targetIdx];
+    tok.el.classList.add('speaking');
+    currentSpeakingEl = tok.el;
+    if (tok.rowEl) {
       Array.from(slideBody.querySelectorAll('.slide-row')).forEach(r => {
-        r.classList.toggle('active-row', r === activeRowEl);
+        r.classList.toggle('active-row', r === tok.rowEl);
       });
     }
   }
 
   function clearWordHighlights() {
-    greekOccurrenceCursor = 0;
-    engOccurrenceCursor = 0;
+    if (currentSpeakingEl) {
+      currentSpeakingEl.classList.remove('speaking');
+      currentSpeakingEl = null;
+    }
     document.querySelectorAll('.w-tok.speaking, .w-tok.spoken').forEach(el => {
       el.classList.remove('speaking', 'spoken');
     });
@@ -989,19 +1073,24 @@ AVATAR_HTML = """<!DOCTYPE html>
     if (!pres || !pres.active_slide) return;
     const s = pres.active_slide;
     const totalSlides = (pres.deck && pres.deck.total_slides) || 5;
+    if (s.slide_number !== currentSlideNumber) {
+      currentSlideNumber = s.slide_number;
+      slideGreekCursor = 0;
+      slideEngCursor = 0;
+    }
     slideTitle.textContent = s.title;
     slideBadge.textContent = `Slide ${s.slide_number} / ${totalSlides}`;
 
     let html = '';
     if (s.header) {
-      html += `<div style="font-size:22px;color:#b8ccf0;font-weight:600;margin-bottom:4px;">${tokenizeHtmlWithSpans(s.header, true)}</div>`;
+      html += `<div style="font-size:24px;color:#b8ccf0;font-weight:600;margin-bottom:4px;">${tokenizeHtmlWithSpans(s.header, true)}</div>`;
     }
     if (s.layout === 'table_two_col') {
       const h0 = (s.headers && s.headers[0]) || 'II.12, obtuse';
       const h1 = (s.headers && s.headers[1]) || 'II.13, acute';
-      html += `<div class="slide-two-col" style="border-bottom:1px solid rgba(229,196,103,0.3);padding-bottom:8px;font-size:20px;color:#b8ccf0;font-weight:700;"><div>${h0}</div><div>${h1}</div></div>`;
+      html += `<div class="slide-two-col" style="border-bottom:1px solid rgba(229,196,103,0.3);padding-bottom:8px;font-size:22px;color:#b8ccf0;font-weight:700;"><div>${h0}</div><div>${h1}</div></div>`;
       (s.rows || []).forEach(r => {
-        html += `<div class="slide-row slide-two-col" style="padding:10px 18px;"><div class="slide-row-greek" style="font-size:23px;margin:0;">${tokenizeHtmlWithSpans(r.greek, true)}</div><div class="slide-row-greek" style="font-size:23px;margin:0;color:#ffffff;">${tokenizeHtmlWithSpans(r.english, true)}</div></div>`;
+        html += `<div class="slide-row slide-two-col" style="padding:14px 20px;"><div class="slide-row-greek" style="font-size:26px;margin:0;">${tokenizeHtmlWithSpans(r.greek, true)}</div><div class="slide-row-greek" style="font-size:26px;margin:0;color:#ffffff;">${tokenizeHtmlWithSpans(r.english, true)}</div></div>`;
       });
     } else {
       (s.rows || []).forEach(r => {
@@ -1012,6 +1101,7 @@ AVATAR_HTML = """<!DOCTYPE html>
       });
     }
     slideBody.innerHTML = html;
+    indexSlideTokens();
   }
 
   function connectWS() {
@@ -1029,35 +1119,38 @@ AVATAR_HTML = """<!DOCTYPE html>
         }
         if (typeof msg.word_index === 'number' && msg.word_index !== lastWordIdx) {
           lastWordIdx = msg.word_index;
-          highlightActiveWord(msg.word_index, msg.norm || '', !!msg.is_greek);
+          highlightActiveWord(msg.word_index);
         }
       } else if (msg.type === 'subtitle') {
         lastWordIdx = -1;
-        greekOccurrenceCursor = 0;
-        engOccurrenceCursor = 0;
-        activeWordTimings = msg.word_timings || [];
-        greekSub.innerHTML = tokenizeHtmlWithSpans(msg.greek || '', true);
-        englishSub.innerHTML = tokenizeHtmlWithSpans(msg.spoken || msg.english || '', false);
-        if (activeWordTimings.length > 0 && activeWordTimings[0].diagram_cues) {
-          applyDiagramCues(activeWordTimings[0].diagram_cues, activeWordTimings[0].cue_banner || '');
+        const timings = msg.word_timings || [];
+        buildWordToSlideTokenMap(timings);
+        if (timings.length > 0 && timings[0].diagram_cues) {
+          applyDiagramCues(timings[0].diagram_cues, timings[0].cue_banner || '');
         }
         if (!msg.speaking) {
           clearWordHighlights();
         }
-        if (msg.total_sentences && msg.total_sentences > 0 && msg.speaking) {
-          progressPill.style.display = 'block';
-          progressPill.textContent = `Speaking ${msg.sentence_index + 1} / ${msg.total_sentences}`;
-        } else {
-          progressPill.style.display = 'none';
-        }
       } else if (msg.type === 'turn_update' && msg.turn && msg.turn.status === 'speaking') {
+        currentSlideNumber = -99;
+        slideGreekCursor = 0;
+        slideEngCursor = 0;
         slideTitle.textContent = 'Professor Q&A · Elements II.13';
         slideBadge.textContent = 'Live Q&A';
-        slideBody.innerHTML = `<div class="slide-row active-row"><div class="slide-row-eng" style="color:#9aa8c2;margin-bottom:8px;">Question: ${msg.turn.transcript || ''}</div><div class="slide-row-greek">${tokenizeHtmlWithSpans(msg.turn.greek || '', true)}</div><div class="slide-row-eng" style="margin-top:8px;">${tokenizeHtmlWithSpans(msg.turn.english || '', false)}</div></div>`;
+        slideBody.innerHTML = `<div class="slide-row active-row"><div class="slide-row-eng" style="color:#9aa8c2;margin-bottom:10px;">Question: ${msg.turn.transcript || ''}</div><div class="slide-row-greek">${tokenizeHtmlWithSpans(msg.turn.greek || '', true)}</div><div class="slide-row-eng" style="margin-top:10px;">${tokenizeHtmlWithSpans(msg.turn.english || '', false)}</div></div>`;
+        indexSlideTokens();
       }
     };
     ws.onclose = () => setTimeout(connectWS, 1000);
   }
+  function openZoomStage16x9() {
+    window.open(
+      '/avatar?zoom16x9=1',
+      'EuclidZoomStage16x9',
+      'popup=yes,width=1440,height=838,menubar=no,toolbar=no,location=no,status=no'
+    );
+  }
+
   connectWS();
 </script>
 </body>
@@ -1330,6 +1423,7 @@ CONTROL_HTML = """<!DOCTYPE html>
         <option value="google_erasmian|en-AU-Chirp3-HD-Charon">Pure Erasmian Greek Only · en-AU-Chirp3-HD-Charon</option>
         <option value="kokoro_erasmian|bm_george">Local Kokoro Male · bm_george</option>
       </select>
+      <button onclick="openZoomStage16x9()" style="background:#26334d;border-color:var(--gold);color:var(--gold);" title="Open a dedicated 16:9 HD stage window for Zoom screen/window capture">📺 Open 16:9 Zoom Stage</button>
       <a href="/avatar" target="_blank" style="color:var(--gold);font-size:13px;text-decoration:none;margin-left:4px;">Open /avatar ↗</a>
     </div>
   </header>
@@ -1773,6 +1867,14 @@ CONTROL_HTML = """<!DOCTYPE html>
     };
     ws.onclose = () => setTimeout(connectWS, 1000);
   }
+  function openZoomStage16x9() {
+    window.open(
+      '/avatar?zoom16x9=1',
+      'EuclidZoomStage16x9',
+      'popup=yes,width=1440,height=838,menubar=no,toolbar=no,location=no,status=no'
+    );
+  }
+
   connectWS();
 </script>
 </body>

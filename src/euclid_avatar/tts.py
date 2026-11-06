@@ -1094,19 +1094,19 @@ def _split_expressive_bilingual_phrases(
                         norm_gr += "."
                     refined.append((norm_gr, "gr", pause))
         else:
-            # Split English span on full sentence boundaries (. ! ?) even after closing quotes/**/~,
-            # or on em-dashes ( — ). Coalesce any short (<4-word) fragments with their neighbor
-            # so Chirp3-HD always receives natural 5-18 word breath groups.
+            # Keep each full English sentence intact (replacing em-dashes with commas so Chirp3-HD
+            # maintains a single unbroken sentence contour without mid-sentence voice resets).
+            norm_en = re.sub(r"\s+—\s+", ", ", cleaned)
             raw_parts = [
                 p.strip()
                 for p in re.split(
-                    r'(?<=[.!?])(?:["\'”’*~]+)?\s+|\s+—\s+',
-                    cleaned,
+                    r'(?<=[.!?])(?:["\'”’*~]+)?\s+',
+                    norm_en,
                 )
                 if p.strip()
             ]
             if not raw_parts:
-                raw_parts = [cleaned]
+                raw_parts = [norm_en]
             parts: list[str] = []
             for p in raw_parts:
                 w_count = len(re.findall(r"[A-Za-z]+", p))
@@ -1125,12 +1125,15 @@ def _split_expressive_bilingual_phrases(
                 elif stripped_part.endswith((".", "!", "?")):
                     pause = SENTENCE_PAUSE_S
                 else:
-                    # Preceded an em-dash: ensure comma for natural continuation intonation
                     if not stripped_part.endswith((",", ":", ";", ".", "!", "?")):
                         part = part + ","
                     pause = EM_DASH_PAUSE_S
                 refined.append((part, "en", pause))
     return refined
+
+
+# Consistent higher-pitch calibration (semitones) so the entire presentation uses one clear voice
+UNIFORM_HIGHER_PITCH_ST = 1.25
 
 
 def _compute_phrase_prosody(
@@ -1143,22 +1146,16 @@ def _compute_phrase_prosody(
 ) -> tuple[float, str | None, str | None, float, float, str]:
     """Compute (speaking_rate, ssml_pitch, ssml_rate, dsp_pitch_st, dsp_gain_db, bucket) for a phrase.
 
-    Note: ssml_rate is kept None when speaking_rate is sent in audioConfig so Google Cloud TTS
-    does not double-multiply rates. Variation in speed is driven directly by speaking_rate,
-    while variation in tone/inflection/emphasis is driven jointly by <prosody pitch="...">
-    and _shape_phrase_pcm(dsp_pitch_st, dsp_gain_db).
+    Keeps the voice identity and pitch strictly uniform at UNIFORM_HIGHER_PITCH_ST across all
+    English and Greek phrases (so the voice never changes within or between sentences), while
+    varying speaking rate and subtle emphasis gain naturally across sentences.
     """
     if lang == "gr":
         has_letters = bool(LETTERS_RE.search(phrase_text))
         if has_letters:
             rate = min(grk_rate, 0.76)
-            return (rate, None, None, -0.2, 1.3, "gr_letters")
-        step = phrase_idx % 3
-        if step == 0:
-            return (grk_rate * 1.00, None, None, 0.4, 1.1, "gr_0")
-        if step == 1:
-            return (grk_rate * 1.04, None, None, -0.4, 0.8, "gr_1")
-        return (grk_rate * 0.98, None, None, 0.6, 1.2, "gr_2")
+            return (rate, None, None, UNIFORM_HIGHER_PITCH_ST, 1.1, "gr_letters")
+        return (grk_rate, None, None, UNIFORM_HIGHER_PITCH_ST, 1.0, "gr_clause")
 
     plain = strip_prosody_markers(phrase_text)
     has_bold = "**" in phrase_text
@@ -1169,34 +1166,35 @@ def _compute_phrase_prosody(
     has_emphasis = has_bold or plain.endswith("!")
 
     if has_aside and not has_bold:
-        if prev_bucket == "en_aside_brisk":
-            rate = min(1.12, max(0.90, eng_rate * 1.08))
-            return (rate, "+0.9st", None, 0.6, 0.3, "en_narrative_lively")
-        rate = min(1.15, max(0.92, eng_rate * 1.15))
-        return (rate, "-1.4st", None, -1.0, -0.9, "en_aside_brisk")
+        rate = min(1.06, max(0.92, eng_rate * 1.06))
+        return (rate, None, None, UNIFORM_HIGHER_PITCH_ST, 0.4, "en_aside")
 
     if has_emphasis:
-        if prev_bucket == "en_emphasis_high":
-            # Alternate consecutive emphasized claims to a warm, authoritative lower-pitch cadence
-            rate = min(1.04, max(0.86, eng_rate * 0.98))
-            return (rate, "-1.1st", None, -0.8, 1.9, "en_emphasis_warm")
-        rate = min(1.02, max(0.84, eng_rate * 0.95))
-        return (rate, "+2.0st", None, 1.5, 2.2, "en_emphasis_high")
+        rate = min(0.98, max(0.86, eng_rate * 0.96))
+        return (rate, None, None, UNIFORM_HIGHER_PITCH_ST, 1.4, "en_emphasis")
 
-    if has_signpost and prev_bucket != "en_signpost_rise":
-        rate = min(1.08, max(0.88, eng_rate * 1.03))
-        return (rate, "+1.5st", None, 1.1, 1.3, "en_signpost_rise")
+    if has_signpost:
+        rate = min(1.02, max(0.88, eng_rate * 1.00))
+        return (rate, None, None, UNIFORM_HIGHER_PITCH_ST, 1.0, "en_signpost")
 
-    # Flowing narrative: cycle through 3 distinct prosodic steps, skipping prev_bucket
-    candidates = [
-        (min(1.12, eng_rate * 1.10), "+0.9st", None, 0.7, 0.6, "en_narrative_lively"),
-        (max(0.88, eng_rate * 1.00), "-0.8st", None, -0.6, -0.2, "en_narrative_grounded"),
-        (min(1.14, eng_rate * 1.13), "+1.3st", None, 0.9, 1.0, "en_narrative_forward"),
-    ]
-    pick = candidates[phrase_idx % 3]
-    if pick[5] == prev_bucket:
-        pick = candidates[(phrase_idx + 1) % 3]
-    return pick
+    step = phrase_idx % 2
+    if step == 0:
+        return (
+            min(1.04, eng_rate * 1.02),
+            None,
+            None,
+            UNIFORM_HIGHER_PITCH_ST,
+            0.7,
+            "en_narrative_a",
+        )
+    return (
+        max(0.89, eng_rate * 0.98),
+        None,
+        None,
+        UNIFORM_HIGHER_PITCH_ST,
+        0.9,
+        "en_narrative_b",
+    )
 
 
 def _shape_phrase_pcm(
