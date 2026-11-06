@@ -19,6 +19,14 @@ from .config import Config
 from .devices import OBSController, find_device_index
 from .index import CourseRetriever, RetrievedChunk
 from .llm import EuclidLLM
+from .presentation import (
+    INTER_SEGMENT_PAUSE_S,
+    INTER_SLIDE_PAUSE_S,
+    PresentationDeck,
+    load_presentation_deck,
+    prebuild_presentation,
+    synthesize_or_load_segment,
+)
 from .stt import STT_SAMPLE_RATE, LocalWhisperSTT
 from .tts import SAMPLE_RATE, GreekTTSAdapter, SentenceAudioChunk, read_wav_mono24k, write_wav_mono24k
 
@@ -167,6 +175,17 @@ class EuclidPipeline:
         self._capture_start_time = 0.0
         self._playback_lock = threading.Lock()
         self.canned_responses = self._load_canned_responses()
+
+        # 5-Minute II.13 Presentation state
+        self._pres_playing = False
+        self._pres_paused = False
+        self._pres_cancel = threading.Event()
+        self._pres_pause_gate = threading.Event()
+        self._pres_pause_gate.set()
+        self._pres_slide_number = 1
+        self._pres_segment_id = ""
+        self._pres_global_index = 0
+        self._pres_voice = self.cfg.tts_voice_english
 
     def _load_canned_responses(self) -> list[dict[str, Any]]:
         if not self.cfg.canned_file.exists():
@@ -377,6 +396,7 @@ class EuclidPipeline:
                 chunk = self.tts.synthesize_sentence(
                     s["greek"],
                     english_sentence=s.get("english", ""),
+                    spoken_sentence=s.get("spoken", ""),
                     index=idx,
                     backend=turn.tts_backend,
                     voice=turn.tts_voice,
@@ -697,10 +717,11 @@ class EuclidPipeline:
             for idx, s in enumerate(sentences):
                 ch = self.tts.synthesize_sentence(
                     s["greek"],
-                    english_sentence=s["english"],
+                    english_sentence=s.get("english", ""),
+                    spoken_sentence=s.get("spoken", ""),
                     index=idx,
                     backend=item.get("tts_backend", self.cfg.tts_backend),
-                    voice=item.get("tts_voice", self.cfg.tts_voice_erasmian),
+                    voice=item.get("tts_voice", self.cfg.tts_voice_english),
                 )
                 chunks.append(ch)
             write_wav_mono24k(wav_path, np.concatenate([c.pcm for c in chunks]), SAMPLE_RATE)
@@ -744,3 +765,253 @@ class EuclidPipeline:
         self.current_turn = turn
         self.emit_turn_update(turn)
         return self.approve_current_turn(play_audio=play_audio, block=block)
+
+    # --- 5-Minute Book II Proposition 13 Greek Presentation Runner ---
+
+    def get_presentation_state(self, voice: str | None = None) -> dict[str, Any]:
+        """Return the loaded 5-slide II.13 presentation deck and live playback status."""
+        active_voice = voice or self._pres_voice or self.cfg.tts_voice_english
+        deck = load_presentation_deck(self.cfg, voice=active_voice)
+        active_slide = next(
+            (s for s in deck.slides if s.slide_number == self._pres_slide_number),
+            deck.slides[0] if deck.slides else None,
+        )
+        return {
+            "playing": self._pres_playing,
+            "paused": self._pres_paused,
+            "current_slide_number": self._pres_slide_number,
+            "current_segment_id": self._pres_segment_id,
+            "current_global_index": self._pres_global_index,
+            "active_slide": active_slide.to_ui_dict() if active_slide else None,
+            "deck": deck.to_ui_dict(),
+        }
+
+    def emit_presentation_state(self, voice: str | None = None) -> None:
+        self.emit({"type": "presentation_state", "presentation": self.get_presentation_state(voice=voice)})
+
+    def prebuild_presentation_deck(self, *, voice: str | None = None, force: bool = False) -> dict[str, Any]:
+        active_voice = voice or self.cfg.tts_voice_english
+        self._pres_voice = active_voice
+        summary = prebuild_presentation(self.cfg, self.tts, voice=active_voice, force=force)
+        self.emit_presentation_state(voice=active_voice)
+        return summary
+
+    def select_presentation_slide(self, slide_number: int, voice: str | None = None) -> dict[str, Any]:
+        """Switch the displayed slide on /avatar and /control without auto-playing."""
+        deck = load_presentation_deck(self.cfg, voice=voice or self._pres_voice)
+        target = next((s for s in deck.slides if s.slide_number == slide_number), None)
+        if target is None:
+            raise ValueError(f"Unknown slide_number: {slide_number}")
+        self._pres_slide_number = target.slide_number
+        if target.segments:
+            self._pres_segment_id = target.segments[0].id
+            self._pres_global_index = target.segments[0].global_index
+        self.emit_presentation_state(voice=voice)
+        return self.get_presentation_state(voice=voice)
+
+    def pause_presentation(self) -> dict[str, Any]:
+        if self._pres_playing and not self._pres_paused:
+            self._pres_paused = True
+            self._pres_pause_gate.clear()
+            self.emit({"type": "amplitude", "rms": 0.0})
+            self.emit_presentation_state()
+        return self.get_presentation_state()
+
+    def resume_presentation(self) -> dict[str, Any]:
+        if self._pres_playing and self._pres_paused:
+            self._pres_paused = False
+            self._pres_pause_gate.set()
+            self.emit_presentation_state()
+        return self.get_presentation_state()
+
+    def stop_presentation(self) -> dict[str, Any]:
+        self._pres_cancel.set()
+        self._pres_pause_gate.set()
+        self._pres_playing = False
+        self._pres_paused = False
+        self.emit({"type": "amplitude", "rms": 0.0})
+        self.emit(
+            {
+                "type": "subtitle",
+                "turn_id": "presentation_ii13",
+                "sentence_index": 0,
+                "total_sentences": 0,
+                "english": "",
+                "greek": "",
+                "speaking": False,
+            }
+        )
+        self.emit_presentation_state()
+        return self.get_presentation_state()
+
+    def play_presentation(
+        self,
+        *,
+        start_slide: int = 1,
+        start_segment_id: str | None = None,
+        single_slide: bool = False,
+        single_segment: bool = False,
+        voice: str | None = None,
+        play_audio: bool = True,
+        block: bool = False,
+    ) -> dict[str, Any]:
+        """Play the 5-minute II.13 presentation (full deck, single slide, or single segment)."""
+        if self.current_turn:
+            self.current_turn.cancel_event.set()
+        if self._pres_playing:
+            self._pres_cancel.set()
+            self._pres_pause_gate.set()
+            time.sleep(0.05)
+
+        active_voice = voice or self.cfg.tts_voice_english
+        self._pres_voice = active_voice
+        deck = load_presentation_deck(self.cfg, voice=active_voice)
+
+        # Build target segment list
+        target_segments = []
+        for slide in deck.slides:
+            if start_segment_id:
+                for seg in slide.segments:
+                    if seg.id == start_segment_id or (target_segments and not single_segment):
+                        if single_slide and seg.slide_number != slide.slide_number:
+                            continue
+                        target_segments.append(seg)
+                        if single_segment:
+                            break
+                if target_segments and single_segment:
+                    break
+            else:
+                if slide.slide_number < start_slide:
+                    continue
+                if single_slide and slide.slide_number > start_slide:
+                    break
+                for seg in slide.segments:
+                    target_segments.append(seg)
+                    if single_segment:
+                        break
+                if single_segment and target_segments:
+                    break
+
+        if not target_segments:
+            raise ValueError("No presentation segments matched the requested start point.")
+
+        self._pres_cancel = threading.Event()
+        self._pres_pause_gate = threading.Event()
+        self._pres_pause_gate.set()
+        self._pres_playing = True
+        self._pres_paused = False
+        self._pres_slide_number = target_segments[0].slide_number
+        self._pres_segment_id = target_segments[0].id
+        self._pres_global_index = target_segments[0].global_index
+        self.emit_presentation_state(voice=active_voice)
+
+        def _runner() -> None:
+            with self._playback_lock:
+                out_idx, _, _ = find_device_index(
+                    self.cfg.audio_output_device, kind="output", fallback_to_default=True
+                )
+                total_segs = deck.total_segments
+                for i, seg in enumerate(target_segments):
+                    self._pres_pause_gate.wait()
+                    if self._pres_cancel.is_set():
+                        break
+                    prev_slide = self._pres_slide_number
+                    self._pres_slide_number = seg.slide_number
+                    self._pres_segment_id = seg.id
+                    self._pres_global_index = seg.global_index
+                    self.emit_presentation_state(voice=active_voice)
+
+                    chunk = synthesize_or_load_segment(
+                        self.cfg, self.tts, seg, voice=active_voice, force=False
+                    )
+                    if self._pres_cancel.is_set():
+                        break
+
+                    self.emit(
+                        {
+                            "type": "subtitle",
+                            "turn_id": f"ii13_slide_{seg.slide_number}",
+                            "sentence_index": seg.global_index,
+                            "total_sentences": total_segs,
+                            "english": seg.english,
+                            "greek": seg.greek,
+                            "speaking": True,
+                        }
+                    )
+
+                    if play_audio:
+                        self._stream_pcm_with_rms_pausable(
+                            chunk.pcm,
+                            SAMPLE_RATE,
+                            out_idx,
+                            self._pres_cancel,
+                            self._pres_pause_gate,
+                        )
+                    else:
+                        rms = float(np.sqrt(np.mean(chunk.pcm**2))) if len(chunk.pcm) else 0.0
+                        self.emit({"type": "amplitude", "rms": round(rms, 4)})
+
+                    if play_audio and i < len(target_segments) - 1 and not self._pres_cancel.is_set():
+                        self.emit({"type": "amplitude", "rms": 0.0})
+                        next_slide = target_segments[i + 1].slide_number
+                        pause_s = INTER_SLIDE_PAUSE_S if next_slide != seg.slide_number else INTER_SEGMENT_PAUSE_S
+                        time.sleep(pause_s)
+
+                self._pres_playing = False
+                self._pres_paused = False
+                self.emit({"type": "amplitude", "rms": 0.0})
+                self.emit(
+                    {
+                        "type": "subtitle",
+                        "turn_id": "presentation_ii13",
+                        "sentence_index": self._pres_global_index,
+                        "total_sentences": total_segs,
+                        "english": target_segments[-1].english if target_segments else "",
+                        "greek": target_segments[-1].greek if target_segments else "",
+                        "speaking": False,
+                    }
+                )
+                self.emit_presentation_state(voice=active_voice)
+
+        if block:
+            _runner()
+        else:
+            threading.Thread(target=_runner, daemon=True).start()
+        return self.get_presentation_state(voice=active_voice)
+
+    def _stream_pcm_with_rms_pausable(
+        self,
+        pcm: np.ndarray,
+        sr: int,
+        device_idx: int | None,
+        cancel_event: threading.Event,
+        pause_gate: threading.Event,
+    ) -> None:
+        """Stream mono float32 PCM to CoreAudio with pause/resume support and 60 Hz RMS broadcast."""
+        hop = int(sr / 60)
+        total = len(pcm)
+        try:
+            with sd.OutputStream(
+                samplerate=sr,
+                device=device_idx,
+                channels=1,
+                dtype="float32",
+                blocksize=hop,
+            ) as stream:
+                pos = 0
+                while pos < total and not cancel_event.is_set():
+                    if not pause_gate.is_set():
+                        self.emit({"type": "amplitude", "rms": 0.0})
+                        pause_gate.wait()
+                        if cancel_event.is_set():
+                            break
+                    end = min(pos + hop, total)
+                    frame = pcm[pos:end]
+                    rms = float(np.sqrt(np.mean(frame**2))) if len(frame) else 0.0
+                    norm_rms = min(1.0, rms * 4.2)
+                    self.emit({"type": "amplitude", "rms": round(norm_rms, 4)})
+                    stream.write(frame.reshape(-1, 1))
+                    pos = end
+        except Exception:
+            duration = total / float(sr)
+            time.sleep(min(duration, 0.2))

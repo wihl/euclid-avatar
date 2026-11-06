@@ -143,9 +143,18 @@ def _extract_entities_from_text(title: str, content: str, rel_path: str) -> list
         if 1 <= prop_num <= 48:
             entities.add(f"PROP:I.{prop_num}")
 
-    # Project folders like 2026-project-i23, 2026-project-i12, 2026-project-i8
-    for m in re.finditer(r"project-i(\d{1,2})\b", rel_path, re.IGNORECASE):
-        entities.add(f"PROP:I.{int(m.group(1))}")
+    # Project folders like 2026-project-ii13, 2026-project-i23, 2026-project-i12, 2026-project-i8
+    for m in re.finditer(r"project-(i{1,3}|iv|vi{0,3})(\d{1,2})\b", rel_path, re.IGNORECASE):
+        rom = m.group(1).upper()
+        if rom in ROMAN_TO_INT:
+            entities.add(f"PROP:{rom}.{int(m.group(2))}")
+    if "greek-07" in rel_path.lower():
+        entities.add("PROP:II.13")
+        entities.add("TOPIC:II13_VERBS")
+    if "project-ii13" in rel_path.lower():
+        entities.add("PROP:II.13")
+        entities.add("PROP:II.12")
+        entities.add("TOPIC:II13_GRAMMAR")
 
     # Definitions: Definition 15, Def. 23, Def 1
     for m in re.finditer(r"\bDef(?:inition|\.)?\s*(\d{1,2})\b", combined, re.IGNORECASE):
@@ -198,10 +207,18 @@ def _chunk_markdown(text: str, rel_path: str, source_label: str) -> list[dict[st
     curr_title = source_label
     curr_lines: list[str] = []
 
+    def _chunk_priority() -> int:
+        if "project-ii13" in rel_path or "greek-07" in rel_path:
+            return 0
+        if "study/" in rel_path or "COURSE.md" in rel_path or "project-i23" in rel_path:
+            return 1
+        return 2
+
     def flush(title: str, body_lines: list[str]) -> None:
         body = "\n".join(body_lines).strip()
         if not body or len(body) < 20:
             return
+        prio = _chunk_priority()
         # Cap individual chunk size around 2400 chars with sub-splits if huge
         if len(body) <= 2600:
             entities = _extract_entities_from_text(title, body, rel_path)
@@ -212,7 +229,7 @@ def _chunk_markdown(text: str, rel_path: str, source_label: str) -> list[dict[st
                     "title": title,
                     "content": body,
                     "entity_keys": entities,
-                    "priority": 1 if "study/" in rel_path or "COURSE.md" in rel_path or "project-i23" in rel_path else 2,
+                    "priority": prio,
                 }
             )
         else:
@@ -232,7 +249,7 @@ def _chunk_markdown(text: str, rel_path: str, source_label: str) -> list[dict[st
                             "title": sub_title,
                             "content": sub_body,
                             "entity_keys": entities,
-                            "priority": 2,
+                            "priority": prio,
                         }
                     )
                     buf = [p]
@@ -252,7 +269,7 @@ def _chunk_markdown(text: str, rel_path: str, source_label: str) -> list[dict[st
                         "title": sub_title,
                         "content": sub_body,
                         "entity_keys": entities,
-                        "priority": 2,
+                        "priority": prio,
                     }
                 )
 
@@ -434,13 +451,12 @@ def build_or_update_index(cfg: Config, force: bool = False) -> dict[str, Any]:
     # Discover target files strictly read-only
     candidates: list[tuple[Path, str, str]] = []
 
-    def add_glob(pattern: str, label_prefix: str = "") -> None:
+    def add_glob(pattern: str, label_prefix: str = "", allow_local: bool = False) -> None:
         for p in sorted(repo.glob(pattern)):
             if not p.is_file():
                 continue
             rel = str(p.relative_to(repo))
-            # Respect D036 privacy: never touch local/recordings
-            if rel.startswith("local/"):
+            if rel.startswith("local/") and not allow_local:
                 continue
             # Avoid indexing candidate draft subdirs in greek-01
             if "candidate-" in rel:
@@ -461,6 +477,8 @@ def build_or_update_index(cfg: Config, force: bool = False) -> dict[str, Any]:
     add_glob("coursework/assignments/**/*.qmd")
     add_glob("coursework/projects/**/*.md")
     add_glob("coursework/projects/**/*.qmd")
+    if cfg.include_local_recordings:
+        add_glob("local/recordings/*/transcript.md", allow_local=True)
     add_glob("materials/course/canvas-week-by-week-euclid-links.md", "canvas-week-by-week-euclid-links.md")
     add_glob("materials/course/greek-resources/*.pdf")
     add_glob("materials/course/math-notes/*.pdf")
@@ -671,6 +689,20 @@ def parse_query_entities(query: str) -> list[str]:
     if re.search(r"parts\s+of\s+a.*proposition|six\s+parts|πρότασις|ἔκθεσις|διορισμός|κατασκευή|ἀπόδειξις|συμπέρασμα|ὅπερ\s+ἔδει", q_lower):
         add("TOPIC:PROP_PARTS")
 
+    # 7. Group 4 Presentation Focus: Book II Proposition 13 (Law of Cosines, 15 verbs, 3 cases, article + preposition)
+    if re.search(
+        r"cosine|acute|obtuse|ὀξυγων|ἀμβλυγων|ἔλαττ|ἐλάσσ|μεῖζ|τέτμηται|ἤχθω|προσκείσθω|ὑποτειν|περιεχ|ἀπολαμβαν|κάθετ|misprint|fitzpatrick|genitive\s+of\s+comparison|degree\s+of\s+difference|three\s+cases|noun.*drop|article|presentation|slide|zahid|connor",
+        q_lower,
+    ):
+        add("PROP:II.13")
+        add("TOPIC:II13_GRAMMAR")
+    if re.search(r"\bverb|parse|principal\s+part|reduplicat|aorist|perfect|imperative|participle|τέτμηται|ἤχθω|προσκείσθω|ἔτυχεν", q_lower):
+        add("PROP:II.13")
+        add("TOPIC:II13_VERBS")
+    if not any(e.startswith("PROP:") for e in entities):
+        # Default context during Group 4's II.13 presentation Q&A
+        add("PROP:II.13")
+
     return entities
 
 
@@ -710,7 +742,18 @@ class CourseRetriever:
                 JOIN chunks c ON c.id = em.chunk_id
                 WHERE em.entity_key IN ({placeholders})
                 GROUP BY c.id
-                ORDER BY matched_keys DESC, min_prio ASC, c.id ASC
+                ORDER BY matched_keys DESC,
+                         min_prio ASC,
+                         CASE
+                             WHEN c.source_label IN ('Elements II.13', 'Elements II.12') THEN 0
+                             WHEN c.rel_path LIKE '%2026-project-ii13/greek/%' THEN 1
+                             WHEN c.rel_path LIKE '%2026-greek-07/solution%' THEN 2
+                             WHEN c.rel_path LIKE '%2026-project-ii13/%' THEN 3
+                             WHEN c.rel_path LIKE '%2026-greek-07/%' THEN 4
+                             WHEN c.source_label LIKE 'Elements %' THEN 5
+                             ELSE 6
+                         END ASC,
+                         c.id ASC
                 LIMIT ?
                 """,
                 (*entities, exact_limit),

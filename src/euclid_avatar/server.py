@@ -1,4 +1,5 @@
 """FastAPI + WebSocket local server for `/avatar` (OBS 1920x1080 Browser Source) and `/control` (Operator UI)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -38,8 +39,27 @@ class CannedRequest(BaseModel):
     canned_id: str
 
 
+class PresentationPlayRequest(BaseModel):
+    start_slide: int = 1
+    start_segment_id: str | None = None
+    single_slide: bool = False
+    single_segment: bool = False
+    voice: str | None = None
+
+
+class PresentationSlideSelectRequest(BaseModel):
+    slide_number: int
+    voice: str | None = None
+
+
+class PresentationPrebuildRequest(BaseModel):
+    voice: str | None = None
+    force: bool = False
+
+
 def create_app(cfg: Config, pipeline: EuclidPipeline) -> FastAPI:
-    app = FastAPI(title="Euclid Avatar Spike (MATH E-139)")
+    """Create the FastAPI application for the II.13 presentation and live Q&A."""
+    app = FastAPI(title="Euclid Avatar · Elements II.13 Presentation & Q&A")
     clients: set[WebSocket] = set()
     loop_holder: dict[str, asyncio.AbstractEventLoop] = {}
 
@@ -72,7 +92,12 @@ def create_app(cfg: Config, pipeline: EuclidPipeline) -> FastAPI:
             await ws.send_json(
                 {
                     "type": "init",
-                    "turn": pipeline.current_turn.to_ui_dict() if pipeline.current_turn else None,
+                    "turn": (
+                        pipeline.current_turn.to_ui_dict()
+                        if pipeline.current_turn
+                        else None
+                    ),
+                    "presentation": pipeline.get_presentation_state(),
                     "config": {
                         "tts_backend": cfg.tts_backend,
                         "tts_voice": cfg.active_tts_voice(),
@@ -95,7 +120,12 @@ def create_app(cfg: Config, pipeline: EuclidPipeline) -> FastAPI:
     async def get_state() -> JSONResponse:
         return JSONResponse(
             {
-                "turn": pipeline.current_turn.to_ui_dict() if pipeline.current_turn else None,
+                "turn": (
+                    pipeline.current_turn.to_ui_dict()
+                    if pipeline.current_turn
+                    else None
+                ),
+                "presentation": pipeline.get_presentation_state(),
                 "config": {
                     "tts_backend": cfg.tts_backend,
                     "tts_voice": cfg.active_tts_voice(),
@@ -107,6 +137,64 @@ def create_app(cfg: Config, pipeline: EuclidPipeline) -> FastAPI:
                 "routing": inspect_routing(cfg),
             }
         )
+
+    @app.get("/api/presentation")
+    async def api_get_presentation() -> JSONResponse:
+        state = await asyncio.to_thread(pipeline.get_presentation_state)
+        return JSONResponse(state)
+
+    @app.post("/api/presentation/prebuild")
+    async def api_prebuild_presentation(
+        req: PresentationPrebuildRequest,
+    ) -> JSONResponse:
+        res = await asyncio.to_thread(
+            pipeline.prebuild_presentation_deck,
+            voice=req.voice,
+            force=req.force,
+        )
+        return JSONResponse(res)
+
+    @app.post("/api/presentation/play")
+    async def api_play_presentation(
+        req: PresentationPlayRequest,
+    ) -> JSONResponse:
+        state = await asyncio.to_thread(
+            pipeline.play_presentation,
+            start_slide=req.start_slide,
+            start_segment_id=req.start_segment_id,
+            single_slide=req.single_slide,
+            single_segment=req.single_segment,
+            voice=req.voice,
+            play_audio=True,
+            block=False,
+        )
+        return JSONResponse(state)
+
+    @app.post("/api/presentation/pause")
+    async def api_pause_presentation() -> JSONResponse:
+        state = await asyncio.to_thread(pipeline.pause_presentation)
+        return JSONResponse(state)
+
+    @app.post("/api/presentation/resume")
+    async def api_resume_presentation() -> JSONResponse:
+        state = await asyncio.to_thread(pipeline.resume_presentation)
+        return JSONResponse(state)
+
+    @app.post("/api/presentation/stop")
+    async def api_stop_presentation() -> JSONResponse:
+        state = await asyncio.to_thread(pipeline.stop_presentation)
+        return JSONResponse(state)
+
+    @app.post("/api/presentation/select_slide")
+    async def api_select_slide(
+        req: PresentationSlideSelectRequest,
+    ) -> JSONResponse:
+        state = await asyncio.to_thread(
+            pipeline.select_presentation_slide,
+            req.slide_number,
+            req.voice,
+        )
+        return JSONResponse(state)
 
     @app.post("/api/capture/start")
     async def api_capture_start(use_operator_mic: bool = False) -> JSONResponse:
@@ -130,7 +218,9 @@ def create_app(cfg: Config, pipeline: EuclidPipeline) -> FastAPI:
 
     @app.post("/api/turn/approve")
     async def api_approve() -> JSONResponse:
-        turn = await asyncio.to_thread(pipeline.approve_current_turn, play_audio=True, block=False)
+        turn = await asyncio.to_thread(
+            pipeline.approve_current_turn, play_audio=True, block=False
+        )
         return JSONResponse(turn.to_ui_dict())
 
     @app.post("/api/turn/regenerate")
@@ -145,12 +235,19 @@ def create_app(cfg: Config, pipeline: EuclidPipeline) -> FastAPI:
 
     @app.post("/api/turn/edit")
     async def api_edit(req: EditTurnRequest) -> JSONResponse:
-        turn = await asyncio.to_thread(pipeline.update_turn_text, req.english, req.greek)
+        turn = await asyncio.to_thread(
+            pipeline.update_turn_text, req.english, req.greek
+        )
         return JSONResponse(turn.to_ui_dict())
 
     @app.post("/api/canned")
     async def api_canned(req: CannedRequest) -> JSONResponse:
-        turn = await asyncio.to_thread(pipeline.play_canned_response, req.canned_id, play_audio=True, block=False)
+        turn = await asyncio.to_thread(
+            pipeline.play_canned_response,
+            req.canned_id,
+            play_audio=True,
+            block=False,
+        )
         return JSONResponse(turn.to_ui_dict())
 
     @app.post("/api/config")
@@ -158,7 +255,10 @@ def create_app(cfg: Config, pipeline: EuclidPipeline) -> FastAPI:
         if req.tts_backend:
             cfg.tts_backend = req.tts_backend
         if req.tts_voice:
-            if cfg.tts_backend == "google_erasmian":
+            if cfg.tts_backend == "google_au_bilingual":
+                cfg.tts_voice_english = req.tts_voice
+                cfg.tts_voice_erasmian = req.tts_voice
+            elif cfg.tts_backend == "google_erasmian":
                 cfg.tts_voice_erasmian = req.tts_voice
             elif cfg.tts_backend == "google_modern":
                 cfg.tts_voice_modern = req.tts_voice
@@ -204,14 +304,14 @@ AVATAR_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Euclid of Alexandria · MATH E-139 Avatar (1920x1080)</title>
+<title>Euclid of Alexandria · Elements II.13 Presentation & Q&A (1920x1080)</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
     width: 1920px;
     height: 1080px;
     overflow: hidden;
-    background: radial-gradient(circle at 50% 38%, #1c2536 0%, #0d121c 65%, #070a10 100%);
+    background: radial-gradient(circle at 30% 40%, #1c2536 0%, #0d121c 65%, #070a10 100%);
     font-family: "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
     color: #fdfaf2;
     user-select: none;
@@ -224,57 +324,135 @@ AVATAR_HTML = """<!DOCTYPE html>
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: 36px 80px 44px 80px;
+    padding: 28px 64px 36px 64px;
   }
   .header-banner {
     display: flex;
     align-items: center;
-    gap: 20px;
+    justify-content: space-between;
+    width: 100%;
     padding: 10px 32px;
     border: 1.5px solid rgba(218, 181, 92, 0.45);
     border-radius: 999px;
-    background: rgba(12, 17, 28, 0.78);
-    letter-spacing: 0.08em;
-    font-size: 24px;
+    background: rgba(12, 17, 28, 0.82);
+    letter-spacing: 0.06em;
+    font-size: 22px;
     color: #e5c467;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
   }
   .header-banner span.sub {
     color: #b7c2d6;
-    font-size: 20px;
-    letter-spacing: 0.03em;
+    font-size: 19px;
+    letter-spacing: 0.02em;
+  }
+  .main-row {
+    width: 100%;
+    height: 670px;
+    display: grid;
+    grid-template-columns: 560px 1fr;
+    gap: 36px;
+    align-items: center;
   }
   .bust-container {
     position: relative;
-    width: 680px;
-    height: 620px;
+    width: 560px;
+    height: 600px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: -10px;
   }
   .aura-ring {
     position: absolute;
-    width: 540px;
-    height: 540px;
+    width: 480px;
+    height: 480px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(229, 196, 103, 0.28) 0%, rgba(229, 196, 103, 0.06) 55%, transparent 72%);
     transition: transform 0.04s linear, opacity 0.04s linear;
     pointer-events: none;
   }
   svg.euclid-svg {
-    width: 620px;
-    height: 600px;
+    width: 540px;
+    height: 540px;
     z-index: 2;
     filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.75));
   }
-  .subtitle-box {
-    width: 1740px;
-    min-height: 230px;
-    background: rgba(8, 11, 18, 0.92);
-    border: 2.5px solid rgba(229, 196, 103, 0.65);
+  .slide-card {
+    height: 630px;
+    background: rgba(11, 16, 26, 0.90);
+    border: 2px solid rgba(229, 196, 103, 0.55);
     border-radius: 22px;
-    padding: 24px 44px;
+    padding: 28px 38px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.75);
+    overflow: hidden;
+  }
+  .slide-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid rgba(229, 196, 103, 0.35);
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+  }
+  .slide-title {
+    font-size: 34px;
+    font-weight: 700;
+    color: #f3d47c;
+  }
+  .slide-pill {
+    background: #1b263b;
+    border: 1.5px solid #e5c467;
+    color: #f0d078;
+    padding: 5px 18px;
+    border-radius: 999px;
+    font-size: 18px;
+    font-family: -apple-system, sans-serif;
+    font-weight: 600;
+  }
+  .slide-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+  }
+  .slide-row {
+    background: rgba(23, 33, 52, 0.72);
+    border-left: 4px solid #e5c467;
+    border-radius: 10px;
+    padding: 14px 20px;
+  }
+  .slide-row-greek {
+    font-family: "New Athena Unicode", "Gentium Plus", "Palatino Linotype", Georgia, serif;
+    font-size: 27px;
+    line-height: 1.38;
+    color: #f7df94;
+    margin-bottom: 6px;
+  }
+  .slide-row-eng {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 22px;
+    line-height: 1.34;
+    color: #e4ecf7;
+  }
+  .slide-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .subtitle-wrapper {
+    position: relative;
+    width: 100%;
+  }
+  .subtitle-box {
+    width: 100%;
+    min-height: 210px;
+    background: rgba(8, 11, 18, 0.94);
+    border: 2.5px solid rgba(229, 196, 103, 0.68);
+    border-radius: 20px;
+    padding: 20px 40px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -285,18 +463,18 @@ AVATAR_HTML = """<!DOCTYPE html>
   }
   .greek-sub {
     font-family: "New Athena Unicode", "Gentium Plus", "Palatino Linotype", Georgia, serif;
-    font-size: 33px;
-    line-height: 1.35;
+    font-size: 29px;
+    line-height: 1.34;
     color: #f0d078;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     font-weight: 500;
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
-    max-width: 1640px;
+    max-width: 1680px;
   }
   .english-sub {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    font-size: 44px;
-    line-height: 1.32;
+    font-size: 36px;
+    line-height: 1.30;
     font-weight: 700;
     color: #ffffff;
     text-shadow:
@@ -305,110 +483,107 @@ AVATAR_HTML = """<!DOCTYPE html>
       -2px  2px 0 #000,
        2px  2px 0 #000,
        0px  4px 12px rgba(0, 0, 0, 0.95);
-    max-width: 1650px;
+    max-width: 1680px;
   }
   .progress-pill {
     position: absolute;
-    top: -18px;
-    right: 40px;
+    top: -16px;
+    right: 36px;
     background: #1b263b;
     border: 1.5px solid #e5c467;
     color: #f0d078;
     padding: 4px 18px;
     border-radius: 999px;
-    font-size: 18px;
+    font-size: 17px;
     font-family: -apple-system, sans-serif;
     font-weight: 600;
     display: none;
-  }
-  .subtitle-wrapper {
-    position: relative;
+    z-index: 10;
   }
 </style>
 </head>
 <body>
   <div class="stage">
     <div class="header-banner">
-      <span>ΕΥΚΛΕΙΔΗΣ Ο ΑΛΕΞΑΝΔΡΕΥΣ</span>
-      <span class="sub">· MATH E-139 · Elements of Geometry</span>
+      <span>ΕΥΚΛΕΙΔΗΣ Ο ΑΛΕΞΑΝΔΡΕΥΣ · ELEMENTS II.13</span>
+      <span class="sub">Group 4 · Connor Pearson (Diagram) · Euclid / David Wihl (Greek) · Zahid Syed (Proof)</span>
     </div>
 
-    <div class="bust-container">
-      <div class="aura-ring" id="auraRing"></div>
-      <svg class="euclid-svg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="marbleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#f4efe4"/>
-            <stop offset="55%" stop-color="#ddd3c0"/>
-            <stop offset="100%" stop-color="#b5a78f"/>
-          </linearGradient>
-          <linearGradient id="robeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#e5dccb"/>
-            <stop offset="100%" stop-color="#9e9078"/>
-          </linearGradient>
-          <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#f5d97e"/>
-            <stop offset="100%" stop-color="#b88c28"/>
-          </linearGradient>
-        </defs>
+    <div class="main-row">
+      <div class="bust-container">
+        <div class="aura-ring" id="auraRing"></div>
+        <svg class="euclid-svg" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="marbleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f4efe4"/>
+              <stop offset="55%" stop-color="#ddd3c0"/>
+              <stop offset="100%" stop-color="#b5a78f"/>
+            </linearGradient>
+            <linearGradient id="robeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#e5dccb"/>
+              <stop offset="100%" stop-color="#9e9078"/>
+            </linearGradient>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f5d97e"/>
+              <stop offset="100%" stop-color="#b88c28"/>
+            </linearGradient>
+          </defs>
 
-        <!-- Sacred Geometry Halo (I.1 & I.47 motif) -->
-        <g id="geoHalo" stroke="url(#goldGrad)" fill="none" opacity="0.55">
-          <circle cx="300" cy="250" r="220" stroke-width="2" stroke-dasharray="8 6"/>
-          <circle cx="300" cy="250" r="190" stroke-width="1.5"/>
-          <polygon points="300,60 464,345 136,345" stroke-width="1.5" opacity="0.6"/>
-          <polygon points="300,440 464,155 136,155" stroke-width="1.2" opacity="0.35"/>
-        </g>
+          <g id="geoHalo" stroke="url(#goldGrad)" fill="none" opacity="0.55">
+            <circle cx="300" cy="250" r="220" stroke-width="2" stroke-dasharray="8 6"/>
+            <circle cx="300" cy="250" r="190" stroke-width="1.5"/>
+            <polygon points="300,60 464,345 136,345" stroke-width="1.5" opacity="0.6"/>
+            <polygon points="300,440 464,155 136,155" stroke-width="1.2" opacity="0.35"/>
+          </g>
 
-        <!-- Classical Bust Pedestal & Himation Robe -->
-        <path d="M120,565 L480,565 L450,435 C415,400 365,385 300,385 C235,385 185,400 150,435 Z"
-              fill="url(#robeGrad)" stroke="#7a6d58" stroke-width="3"/>
-        <path d="M165,440 C220,485 300,505 425,430" fill="none" stroke="#887a62" stroke-width="5"/>
-        <path d="M195,495 C255,530 335,535 445,475" fill="none" stroke="#887a62" stroke-width="4"/>
-        <rect x="100" y="555" width="400" height="26" rx="6" fill="url(#goldGrad)"/>
+          <path d="M120,565 L480,565 L450,435 C415,400 365,385 300,385 C235,385 185,400 150,435 Z"
+                fill="url(#robeGrad)" stroke="#7a6d58" stroke-width="3"/>
+          <path d="M165,440 C220,485 300,505 425,430" fill="none" stroke="#887a62" stroke-width="5"/>
+          <path d="M195,495 C255,530 335,535 445,475" fill="none" stroke="#887a62" stroke-width="4"/>
+          <rect x="100" y="555" width="400" height="26" rx="6" fill="url(#goldGrad)"/>
 
-        <!-- Neck & Head -->
-        <rect x="256" y="330" width="88" height="75" rx="20" fill="url(#marbleGrad)"/>
-        <ellipse cx="300" cy="225" rx="102" ry="125" fill="url(#marbleGrad)" stroke="#8c7f6a" stroke-width="2.5"/>
+          <rect x="256" y="330" width="88" height="75" rx="20" fill="url(#marbleGrad)"/>
+          <ellipse cx="300" cy="225" rx="102" ry="125" fill="url(#marbleGrad)" stroke="#8c7f6a" stroke-width="2.5"/>
 
-        <!-- Classical Curly Hair & Fillet Band -->
-        <path d="M195,205 C185,130 235,88 300,88 C365,88 415,130 405,205 C395,165 360,138 300,138 C240,138 205,165 195,205 Z"
-              fill="#d8cebc" stroke="#8c7f6a" stroke-width="2.5"/>
-        <path d="M196,175 Q300,152 404,175" fill="none" stroke="url(#goldGrad)" stroke-width="8"/>
+          <path d="M195,205 C185,130 235,88 300,88 C365,88 415,130 405,205 C395,165 360,138 300,138 C240,138 205,165 195,205 Z"
+                fill="#d8cebc" stroke="#8c7f6a" stroke-width="2.5"/>
+          <path d="M196,175 Q300,152 404,175" fill="none" stroke="url(#goldGrad)" stroke-width="8"/>
 
-        <!-- Brows & Deep-Set Classical Eyes -->
-        <path d="M232,202 Q260,192 282,202" fill="none" stroke="#5c5243" stroke-width="5" stroke-linecap="round"/>
-        <path d="M318,202 Q340,192 368,202" fill="none" stroke="#5c5243" stroke-width="5" stroke-linecap="round"/>
-        <ellipse cx="258" cy="218" rx="16" ry="9" fill="#fdfbf7" stroke="#5c5243" stroke-width="2.5"/>
-        <circle cx="258" cy="218" r="5.5" fill="#3b3328"/>
-        <ellipse cx="342" cy="218" rx="16" ry="9" fill="#fdfbf7" stroke="#5c5243" stroke-width="2.5"/>
-        <circle cx="342" cy="218" r="5.5" fill="#3b3328"/>
+          <path d="M232,202 Q260,192 282,202" fill="none" stroke="#5c5243" stroke-width="5" stroke-linecap="round"/>
+          <path d="M318,202 Q340,192 368,202" fill="none" stroke="#5c5243" stroke-width="5" stroke-linecap="round"/>
+          <ellipse cx="258" cy="218" rx="16" ry="9" fill="#fdfbf7" stroke="#5c5243" stroke-width="2.5"/>
+          <circle cx="258" cy="218" r="5.5" fill="#3b3328"/>
+          <ellipse cx="342" cy="218" rx="16" ry="9" fill="#fdfbf7" stroke="#5c5243" stroke-width="2.5"/>
+          <circle cx="342" cy="218" r="5.5" fill="#3b3328"/>
 
-        <!-- Classical Nose -->
-        <path d="M300,202 L294,262 L310,266" fill="none" stroke="#6e6250" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M300,202 L294,262 L310,266" fill="none" stroke="#6e6250" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M242,292 Q272,272 300,285 Q328,272 358,292" fill="none" stroke="#bfb39e" stroke-width="12" stroke-linecap="round"/>
 
-        <!-- Upper Mustache -->
-        <path d="M242,292 Q272,272 300,285 Q328,272 358,292" fill="none" stroke="#bfb39e" stroke-width="12" stroke-linecap="round"/>
+          <g id="jawGroup">
+            <ellipse id="mouthOpening" cx="300" cy="298" rx="22" ry="3" fill="#2b1d19" stroke="#5c4738" stroke-width="2"/>
+            <path d="M204,252 C200,335 242,405 300,412 C358,405 400,335 396,252 C380,282 355,295 332,296 C320,308 280,308 268,296 C245,295 220,282 204,252 Z"
+                  fill="url(#marbleGrad)" stroke="#857862" stroke-width="2.5"/>
+            <path d="M238,315 Q265,365 282,398" fill="none" stroke="#9e9078" stroke-width="3"/>
+            <path d="M300,315 Q300,368 300,406" fill="none" stroke="#9e9078" stroke-width="3"/>
+            <path d="M362,315 Q335,365 318,398" fill="none" stroke="#9e9078" stroke-width="3"/>
+          </g>
+        </svg>
+      </div>
 
-        <!-- Animated Mouth & Flowing Philosopher Beard Group (driven at 60 Hz by audio RMS) -->
-        <g id="jawGroup">
-          <!-- Mouth cavity -->
-          <ellipse id="mouthOpening" cx="300" cy="298" rx="22" ry="3" fill="#2b1d19" stroke="#5c4738" stroke-width="2"/>
-          <!-- Full sculpted Greek beard -->
-          <path d="M204,252 C200,335 242,405 300,412 C358,405 400,335 396,252 C380,282 355,295 332,296 C320,308 280,308 268,296 C245,295 220,282 204,252 Z"
-                fill="url(#marbleGrad)" stroke="#857862" stroke-width="2.5"/>
-          <path d="M238,315 Q265,365 282,398" fill="none" stroke="#9e9078" stroke-width="3"/>
-          <path d="M300,315 Q300,368 300,406" fill="none" stroke="#9e9078" stroke-width="3"/>
-          <path d="M362,315 Q335,365 318,398" fill="none" stroke="#9e9078" stroke-width="3"/>
-        </g>
-      </svg>
+      <div class="slide-card">
+        <div class="slide-top">
+          <div class="slide-title" id="slideTitle">II.13: the enunciation</div>
+          <div class="slide-pill" id="slideBadge">Slide 1 / 5</div>
+        </div>
+        <div class="slide-body" id="slideBody"></div>
+      </div>
     </div>
 
     <div class="subtitle-wrapper">
-      <div class="progress-pill" id="progressPill">Sentence 1 / 1</div>
+      <div class="progress-pill" id="progressPill">Segment 1 / 12</div>
       <div class="subtitle-box">
-        <div class="greek-sub" id="greekSub">Πρὸς τῇ δοθείσῃ εὐθείᾳ καὶ τῷ πρὸς αὐτῇ σημείῳ τῇ δοθείσῃ γωνίᾳ εὐθυγράμμῳ ἴσην γωνίαν εὐθύγραμμον συστήσασθαι.</div>
-        <div class="english-sub" id="englishSub">Ready for questions — MATH E-139 (Reading Euclid's Elements in Greek)</div>
+        <div class="greek-sub" id="greekSub">Ἐν τοῖς ὀξυγωνίοις τριγώνοις τὸ ἀπὸ τῆς τὴν ὀξεῖαν γωνίαν ὑποτεινούσης πλευρᾶς τετράγωνον ἔλαττόν ἐστι...</div>
+        <div class="english-sub" id="englishSub">Euclid, Elements II.13 — Ready for 5-Minute Presentation & Professor Q&A</div>
       </div>
     </div>
   </div>
@@ -421,9 +596,48 @@ AVATAR_HTML = """<!DOCTYPE html>
   const greekSub = document.getElementById('greekSub');
   const englishSub = document.getElementById('englishSub');
   const progressPill = document.getElementById('progressPill');
+  const slideTitle = document.getElementById('slideTitle');
+  const slideBadge = document.getElementById('slideBadge');
+  const slideBody = document.getElementById('slideBody');
 
   let currentRms = 0;
   let smoothRms = 0;
+
+  function formatMdInline(str) {
+    if (!str) return '';
+    return str
+      .replace(/\\*\\*(.+?)\\*\\*/g, '<strong style="color:#fff;text-decoration:underline;text-decoration-color:#e5c467;">$1</strong>')
+      .replace(/\\*(.+?)\\*/g, '<em style="color:#ffd97d;">$1</em>');
+  }
+
+  function renderSlideCard(pres) {
+    if (!pres || !pres.active_slide) return;
+    const s = pres.active_slide;
+    const totalSlides = (pres.deck && pres.deck.total_slides) || 5;
+    slideTitle.textContent = s.title;
+    slideBadge.textContent = `Slide ${s.slide_number} / ${totalSlides}`;
+
+    let html = '';
+    if (s.header) {
+      html += `<div style="font-size:23px;color:#b8ccf0;font-weight:600;margin-bottom:4px;">${formatMdInline(s.header)}</div>`;
+    }
+    if (s.layout === 'table_two_col') {
+      const h0 = (s.headers && s.headers[0]) || 'II.12, obtuse';
+      const h1 = (s.headers && s.headers[1]) || 'II.13, acute';
+      html += `<div class="slide-two-col" style="border-bottom:1px solid rgba(229,196,103,0.3);padding-bottom:8px;font-size:21px;color:#b8ccf0;font-weight:700;"><div>${h0}</div><div>${h1}</div></div>`;
+      (s.rows || []).forEach(r => {
+        html += `<div class="slide-row slide-two-col" style="padding:10px 18px;"><div class="slide-row-greek" style="font-size:24px;margin:0;">${formatMdInline(r.greek)}</div><div class="slide-row-greek" style="font-size:24px;margin:0;color:#ffffff;">${formatMdInline(r.english)}</div></div>`;
+      });
+    } else {
+      (s.rows || []).forEach(r => {
+        html += `<div class="slide-row">
+          <div class="slide-row-greek">${formatMdInline(r.greek)}</div>
+          ${r.english ? `<div class="slide-row-eng">${formatMdInline(r.english)}</div>` : ''}
+        </div>`;
+      });
+    }
+    slideBody.innerHTML = html;
+  }
 
   function animateAvatar() {
     smoothRms = smoothRms * 0.65 + currentRms * 0.35;
@@ -447,7 +661,11 @@ AVATAR_HTML = """<!DOCTYPE html>
     const ws = new WebSocket(`${proto}//${location.host}/ws`);
     ws.onmessage = (event) => {
       const msg = JSON.parse(event.data);
-      if (msg.type === 'amplitude') {
+      if (msg.type === 'init') {
+        if (msg.presentation) renderSlideCard(msg.presentation);
+      } else if (msg.type === 'presentation_state') {
+        renderSlideCard(msg.presentation);
+      } else if (msg.type === 'amplitude') {
         currentRms = msg.rms || 0;
       } else if (msg.type === 'subtitle') {
         greekSub.textContent = msg.greek || '';
@@ -458,6 +676,10 @@ AVATAR_HTML = """<!DOCTYPE html>
         } else {
           progressPill.style.display = 'none';
         }
+      } else if (msg.type === 'turn_update' && msg.turn && msg.turn.status === 'speaking') {
+        slideTitle.textContent = 'Professor Q&A · Elements II.13';
+        slideBadge.textContent = 'Live Q&A';
+        slideBody.innerHTML = `<div class="slide-row"><div class="slide-row-eng" style="color:#9aa8c2;margin-bottom:8px;">Question: ${msg.turn.transcript || ''}</div><div class="slide-row-greek">${msg.turn.greek || ''}</div><div class="slide-row-eng" style="margin-top:8px;">${msg.turn.english || ''}</div></div>`;
       }
     };
     ws.onclose = () => setTimeout(connectWS, 1000);
@@ -473,7 +695,7 @@ CONTROL_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Euclid Control Console · MATH E-139</title>
+<title>Euclid II.13 Presentation & Q&A Control Console · MATH E-139</title>
 <style>
   :root {
     --bg: #0f1420;
@@ -492,19 +714,21 @@ CONTROL_HTML = """<!DOCTYPE html>
     background: var(--bg);
     color: var(--text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    padding: 18px 24px;
+    padding: 16px 22px;
     line-height: 1.45;
   }
   header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 14px;
+    padding-bottom: 12px;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   header h1 {
-    font-size: 20px;
+    font-size: 19px;
     color: var(--gold);
     display: flex;
     align-items: center;
@@ -512,18 +736,18 @@ CONTROL_HTML = """<!DOCTYPE html>
   }
   .toolbar {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     align-items: center;
     flex-wrap: wrap;
   }
   select, input, textarea, button {
     font-family: inherit;
-    font-size: 14px;
+    font-size: 13px;
     border-radius: 8px;
     border: 1px solid var(--border);
     background: #0d121d;
     color: var(--text);
-    padding: 8px 12px;
+    padding: 7px 11px;
   }
   button {
     cursor: pointer;
@@ -532,9 +756,10 @@ CONTROL_HTML = """<!DOCTYPE html>
   }
   button:hover:not(:disabled) { filter: brightness(1.15); }
   button:disabled { opacity: 0.45; cursor: not-allowed; }
-  .btn-capture { background: var(--blue); border-color: #58a6ff; color: #fff; min-width: 175px; }
+  .btn-play-deck { background: var(--green); border-color: #3fb950; color: #fff; font-size: 14px; padding: 8px 16px; }
+  .btn-capture { background: var(--blue); border-color: #58a6ff; color: #fff; min-width: 165px; }
   .btn-capture.recording { background: var(--red); border-color: #ff7b72; animation: pulse 1s infinite; }
-  .btn-approve { background: var(--green); border-color: #3fb950; color: #fff; font-size: 16px; padding: 10px 22px; }
+  .btn-approve { background: var(--green); border-color: #3fb950; color: #fff; font-size: 15px; padding: 9px 18px; }
   .btn-regen { background: #9e6a03; border-color: #d29922; color: #fff; }
   .btn-discard { background: #8b1e24; border-color: #f85149; color: #fff; }
   .btn-scene { background: #26334d; border-color: var(--gold); color: var(--gold); }
@@ -545,20 +770,15 @@ CONTROL_HTML = """<!DOCTYPE html>
     50% { opacity: 0.7; }
   }
 
-  .grid {
-    display: grid;
-    grid-template-columns: 1.45fr 1fr;
-    gap: 18px;
-  }
   .panel {
     background: var(--panel);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 16px;
+    padding: 15px;
     margin-bottom: 16px;
   }
   .panel h2 {
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--muted);
@@ -566,16 +786,66 @@ CONTROL_HTML = """<!DOCTYPE html>
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .slides-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .slide-tab {
+    background: #101624;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+  .slide-tab.active-slide {
+    border-color: var(--gold);
+    background: rgba(229, 196, 103, 0.12);
+  }
+  .slide-tab .st-num { font-size: 11px; color: var(--gold); font-weight: 700; text-transform: uppercase; }
+  .slide-tab .st-title { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 2px; }
+  .slide-tab .st-meta { font-size: 11px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
+
+  .segments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .seg-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #101624;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .seg-row.active-seg {
+    border-color: #58a6ff;
+    background: rgba(56, 139, 253, 0.14);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1.45fr 1fr;
+    gap: 16px;
   }
   .capture-bar {
     display: flex;
     gap: 10px;
     align-items: center;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
   .mic-meter-bg {
-    width: 120px;
-    height: 12px;
+    width: 110px;
+    height: 11px;
     background: #0b0f18;
     border: 1px solid var(--border);
     border-radius: 999px;
@@ -598,24 +868,24 @@ CONTROL_HTML = """<!DOCTYPE html>
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
   .metric-card {
     background: #101624;
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 8px 10px;
+    padding: 7px 10px;
     text-align: center;
   }
-  .metric-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; }
-  .metric-card .val { font-size: 17px; font-weight: 700; color: var(--gold); margin-top: 2px; }
+  .metric-card .label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+  .metric-card .val { font-size: 15px; font-weight: 700; color: var(--gold); margin-top: 2px; }
 
   .badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 12px;
+    padding: 3px 11px;
     border-radius: 999px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
   }
   .badge-idle { background: #21283b; color: var(--muted); }
@@ -623,12 +893,12 @@ CONTROL_HTML = """<!DOCTYPE html>
   .badge-ready { background: rgba(46, 160, 67, 0.22); color: #56d364; border: 1px solid #2ea043; }
   .badge-speaking { background: rgba(56, 139, 253, 0.22); color: #79c0ff; border: 1px solid #388bfd; }
 
-  .field-group { margin-bottom: 12px; }
+  .field-group { margin-bottom: 10px; }
   .field-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
-  textarea { width: 100%; min-height: 76px; resize: vertical; line-height: 1.4; }
+  textarea { width: 100%; min-height: 68px; resize: vertical; line-height: 1.4; }
   textarea.greek-input {
     font-family: "New Athena Unicode", "Gentium Plus", "Palatino Linotype", Georgia, serif;
-    font-size: 17px;
+    font-size: 16px;
     color: #f0d078;
   }
   .sources-list { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
@@ -645,48 +915,68 @@ CONTROL_HTML = """<!DOCTYPE html>
     gap: 10px;
     align-items: center;
     justify-content: space-between;
-    margin-top: 14px;
-    padding-top: 12px;
+    margin-top: 12px;
+    padding-top: 10px;
     border-top: 1px solid var(--border);
   }
   .canned-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 12px;
+    gap: 10px;
+    padding: 9px 11px;
     background: #101624;
     border: 1px solid var(--border);
     border-radius: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 7px;
   }
-  .canned-item .c-title { font-weight: 600; font-size: 14px; color: var(--gold); }
-  .canned-item .c-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .canned-item .c-title { font-weight: 600; font-size: 13px; color: var(--gold); }
+  .canned-item .c-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 </style>
 </head>
 <body>
   <header>
     <h1>
-      <span>🏛️ Euclid Live Control Console</span>
-      <span style="font-size:13px;color:var(--muted);font-weight:400;">MATH E-139 · Speculative Pre-Synthesis</span>
+      <span>🏛️ Euclid · Elements II.13 Presentation & Q&A Console</span>
+      <span style="font-size:12px;color:var(--muted);font-weight:400;">Australian English + Erasmian Greek IPA</span>
     </h1>
     <div class="toolbar">
       <label style="font-size:12px;color:var(--muted);">Scene:</label>
-      <button class="btn-scene" id="sceneDavidBtn" onclick="switchScene('David')">🎥 David (Webcam)</button>
-      <button class="btn-scene active-scene" id="sceneEuclidBtn" onclick="switchScene('Euclid')">🏛️ Euclid (Avatar)</button>
+      <button class="btn-scene" id="sceneDavidBtn" onclick="switchScene('David')">🎥 David</button>
+      <button class="btn-scene active-scene" id="sceneEuclidBtn" onclick="switchScene('Euclid')">🏛️ Euclid</button>
 
-      <label style="font-size:12px;color:var(--muted);margin-left:8px;">TTS Mode:</label>
+      <label style="font-size:12px;color:var(--muted);margin-left:6px;">Voice Model:</label>
       <select id="ttsPresetSelect" onchange="updateTTSPreset()">
-        <option value="google_erasmian|en-US-Neural2-D">Erasmian IPA · Google Male (en-US-Neural2-D)</option>
-        <option value="google_erasmian|en-US-Neural2-J">Erasmian IPA · Google Male (en-US-Neural2-J)</option>
-        <option value="google_erasmian|en-US-Neural2-H">Erasmian IPA · euclid-tts Baseline (en-US-Neural2-H)</option>
-        <option value="kokoro_erasmian|am_adam">Erasmian IPA · Local Kokoro Male (am_adam)</option>
-        <option value="kokoro_erasmian|af_heart">Erasmian IPA · Local Kokoro Female (af_heart)</option>
-        <option value="google_modern|el-GR-Wavenet-B">Modern Greek · Google Wavenet (el-GR-Wavenet-B)</option>
-        <option value="macos_modern|Melina">Modern Greek · Local macOS (Melina)</option>
+        <option value="google_au_bilingual|en-AU-Neural2-D">AU Male + Erasmian IPA · Neural2-D (~300ms)</option>
+        <option value="google_au_bilingual|en-AU-Chirp3-HD-Charon">AU Male + Erasmian IPA · Chirp3-HD Charon</option>
+        <option value="google_au_bilingual|en-AU-Chirp3-HD-Orus">AU Male + Erasmian IPA · Chirp3-HD Orus</option>
+        <option value="google_au_bilingual|en-AU-Chirp3-HD-Fenrir">AU Male + Erasmian IPA · Chirp3-HD Fenrir</option>
+        <option value="google_au_bilingual|en-AU-News-G">AU Male + Erasmian IPA · News-G (~270ms)</option>
+        <option value="google_au_bilingual|en-AU-Polyglot-1">AU Male + Erasmian IPA · Polyglot-1</option>
+        <option value="google_erasmian|en-AU-Neural2-D">Pure Erasmian Greek Only · en-AU-Neural2-D</option>
+        <option value="kokoro_erasmian|bm_george">Local Kokoro Male · bm_george</option>
       </select>
-      <a href="/avatar" target="_blank" style="color:var(--gold);font-size:13px;text-decoration:none;margin-left:6px;">Open /avatar ↗</a>
+      <a href="/avatar" target="_blank" style="color:var(--gold);font-size:13px;text-decoration:none;margin-left:4px;">Open /avatar ↗</a>
     </div>
   </header>
+
+  <!-- SECTION 1: 5-MINUTE II.13 GREEK PRESENTATION -->
+  <div class="panel">
+    <h2>
+      <span>1. 5-Minute Prepared Presentation — Euclid, Elements II.13: The Greek (Slides 1–5)</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="badge badge-idle" id="presStatusBadge">Ready</span>
+        <span id="presDurationLabel" style="font-size:12px;color:var(--gold);text-transform:none;">Total: —</span>
+        <button class="btn-play-deck" onclick="playPresentation(1, null, false, false)">▶ Play Full 5-Min Presentation</button>
+        <button onclick="pauseOrResumePresentation()" id="presPauseBtn">⏸ Pause</button>
+        <button class="btn-discard" onclick="stopPresentation()">⏹ Stop</button>
+        <button onclick="prebuildPresentation()" id="prebuildBtn" title="Pre-synthesize and cache all 5 slides">⚡ Pre-Render All 5 Slides</button>
+      </div>
+    </h2>
+
+    <div class="slides-strip" id="slidesStrip"></div>
+    <div class="segments-list" id="segmentsList"></div>
+  </div>
 
   <div class="metrics-strip">
     <div class="metric-card"><div class="label">STT (MLX)</div><div class="val" id="mStt">—</div></div>
@@ -697,12 +987,13 @@ CONTROL_HTML = """<!DOCTYPE html>
     <div class="metric-card"><div class="label">Post-Approval</div><div class="val" id="mPostApprove">—</div></div>
   </div>
 
+  <!-- SECTION 2: PROFESSOR Q&A -->
   <div class="grid">
     <div>
       <div class="panel">
         <h2>
-          <span>1. Question Capture & Manual Override</span>
-          <span style="font-size:12px;text-transform:none;">Hotkey: <b>Space</b> (Hold/Toggle Capture)</span>
+          <span>2. Live Professor Q&A (Paul Bamberg & Graeme Bird — II.13)</span>
+          <span style="font-size:12px;text-transform:none;">Hotkey: <b>Space</b> (Capture) · <b>A</b> (Approve)</span>
         </h2>
         <div class="capture-bar">
           <button class="btn-capture" id="captureBtn" onclick="toggleCapture()">🎙️ Start Capture</button>
@@ -713,19 +1004,19 @@ CONTROL_HTML = """<!DOCTYPE html>
           <span id="micDeviceLabel" style="font-size:12px;color:var(--muted);">Idle</span>
         </div>
         <div class="manual-box">
-          <input type="text" id="manualQuestionInput" placeholder="Type or edit a MATH E-139 question in English (e.g. 'State the enunciation of Proposition I.23 in Greek and English')..." onkeydown="if(event.key==='Enter') submitManualQuestion()">
+          <input type="text" id="manualQuestionInput" placeholder="Ask a question about Elements II.13 (e.g. 'Parse the verb τέτμηται in II.13' or 'How does II.13 relate to the Law of Cosines?')..." onkeydown="if(event.key==='Enter') submitManualQuestion()">
           <button onclick="submitManualQuestion()" style="background:#26334d;border-color:#486294;">Ask Euclid ↵</button>
         </div>
       </div>
 
       <div class="panel">
         <h2>
-          <span>2. Operator Review & Speculative Pre-Synthesis</span>
+          <span>3. Q&A Review & Speculative Pre-Synthesis</span>
           <span class="badge badge-idle" id="readinessBadge">Idle</span>
         </h2>
 
         <div class="field-group">
-          <label>Captured Transcript</label>
+          <label>Captured Professor Question</label>
           <input type="text" id="transcriptBox" style="width:100%;" readonly placeholder="Waiting for question...">
         </div>
 
@@ -735,12 +1026,12 @@ CONTROL_HTML = """<!DOCTYPE html>
         </div>
 
         <div class="field-group">
-          <label>Generated English Answer (Subtitle Track — Editable)</label>
-          <textarea id="englishBox" placeholder="English answer will appear here..."></textarea>
+          <label>Spoken Answer (Male Australian English + Embedded Erasmian Greek — Editable)</label>
+          <textarea id="englishBox" placeholder="Bilingual Australian English + Erasmian Greek answer will appear here..."></textarea>
         </div>
 
         <div class="field-group">
-          <label>Generated Polytonic Ancient Greek (Voice Track — Editable)</label>
+          <label>Greek Quotation Display Track (Editable)</label>
           <textarea class="greek-input" id="greekBox" placeholder="Ἑλληνικὴ ἀπόκρισις..."></textarea>
         </div>
 
@@ -760,8 +1051,8 @@ CONTROL_HTML = """<!DOCTYPE html>
     <div>
       <div class="panel">
         <h2>
-          <span>⚡ One-Click Canned Fallback (`~0 s` Latency Floor)</span>
-          <span style="font-size:11px;color:var(--muted);">Pre-Rendered Masters</span>
+          <span>⚡ Prepared II.13 Professor Q&A (`1–5` Instant Playback)</span>
+          <span style="font-size:11px;color:var(--muted);">Bird & Bamberg Questions</span>
         </h2>
         <div id="cannedContainer"></div>
       </div>
@@ -769,7 +1060,7 @@ CONTROL_HTML = """<!DOCTYPE html>
       <div class="panel">
         <h2><span>Retrieved Course Chunks Breakdown</span></h2>
         <div id="retrievedChunksBox" style="font-size:13px;color:var(--muted);">
-          Chunks retrieved from <code>.cache/course_index.sqlite</code> will appear here with match types and entity keys.
+          Chunks retrieved from <code>.cache/course_index.sqlite</code> will appear here.
         </div>
       </div>
     </div>
@@ -778,6 +1069,119 @@ CONTROL_HTML = """<!DOCTYPE html>
 <script>
   let isCapturing = false;
   let activeTurn = null;
+  let presState = null;
+
+  function fmtSec(sec) {
+    if (!sec || sec <= 0) return '—';
+    const m = Math.floor(sec / 60);
+    const s = Math.round(sec % 60);
+    return m > 0 ? `${m}m ${s}s` : `${s}s`;
+  }
+
+  function renderPresentation(pres) {
+    presState = pres;
+    if (!pres || !pres.deck) return;
+    const deck = pres.deck;
+    document.getElementById('presDurationLabel').textContent = `Total: ${fmtSec(deck.total_duration_s)} (Target ~5m 00s)`;
+
+    const badge = document.getElementById('presStatusBadge');
+    const pauseBtn = document.getElementById('presPauseBtn');
+    if (pres.playing && !pres.paused) {
+      badge.className = 'badge badge-speaking';
+      badge.textContent = `🔊 Speaking Slide ${pres.current_slide_number}`;
+      pauseBtn.textContent = '⏸ Pause';
+    } else if (pres.playing && pres.paused) {
+      badge.className = 'badge badge-synth';
+      badge.textContent = `⏸ Paused (Slide ${pres.current_slide_number})`;
+      pauseBtn.textContent = '▶ Resume';
+    } else {
+      badge.className = 'badge badge-ready';
+      badge.textContent = 'Ready';
+      pauseBtn.textContent = '⏸ Pause';
+    }
+
+    const strip = document.getElementById('slidesStrip');
+    strip.innerHTML = (deck.slides || []).map(s => {
+      const isAct = s.slide_number === pres.current_slide_number;
+      return `<div class="slide-tab ${isAct ? 'active-slide' : ''}" onclick="selectSlide(${s.slide_number})">
+        <div class="st-num">Slide ${s.slide_number}</div>
+        <div class="st-title">${s.title}</div>
+        <div class="st-meta">
+          <span>${s.segments.length} segs · ${fmtSec(s.duration_s)}</span>
+          <button onclick="event.stopPropagation(); playPresentation(${s.slide_number}, null, true, false)" style="padding:3px 8px;font-size:11px;background:#26334d;border-color:#486294;">▶ Slide</button>
+        </div>
+      </div>`;
+    }).join('');
+
+    const curSlide = (deck.slides || []).find(s => s.slide_number === pres.current_slide_number) || deck.slides[0];
+    const segList = document.getElementById('segmentsList');
+    if (curSlide) {
+      segList.innerHTML = curSlide.segments.map((seg, i) => {
+        const isActSeg = pres.playing && seg.id === pres.current_segment_id;
+        return `<div class="seg-row ${isActSeg ? 'active-seg' : ''}">
+          <div style="flex:1;">
+            <div style="font-weight:600;color:var(--gold);font-size:12px;">Slide ${curSlide.slide_number}.${i+1} (${seg.id}) · ${seg.cached ? fmtSec(seg.duration_s) : 'Not cached yet'}</div>
+            <div style="color:var(--text);margin-top:2px;">${seg.english}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="playPresentation(${curSlide.slide_number}, '${seg.id}', false, true)" style="padding:5px 10px;font-size:12px;">▶ Seg</button>
+            <button onclick="playPresentation(${curSlide.slide_number}, '${seg.id}', false, false)" style="padding:5px 10px;font-size:12px;background:#1f3a27;border-color:#2ea043;">▶ From Here</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  async function selectSlide(slideNum) {
+    const r = await fetch('/api/presentation/select_slide', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({slide_number: slideNum})
+    });
+    renderPresentation(await r.json());
+  }
+
+  async function playPresentation(startSlide, startSegId, singleSlide, singleSeg) {
+    const r = await fetch('/api/presentation/play', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        start_slide: startSlide,
+        start_segment_id: startSegId,
+        single_slide: singleSlide,
+        single_segment: singleSeg
+      })
+    });
+    renderPresentation(await r.json());
+  }
+
+  async function pauseOrResumePresentation() {
+    if (!presState) return;
+    const url = presState.paused ? '/api/presentation/resume' : '/api/presentation/pause';
+    const r = await fetch(url, {method: 'POST'});
+    renderPresentation(await r.json());
+  }
+
+  async function stopPresentation() {
+    const r = await fetch('/api/presentation/stop', {method: 'POST'});
+    renderPresentation(await r.json());
+  }
+
+  async function prebuildPresentation() {
+    const btn = document.getElementById('prebuildBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Pre-Rendering...';
+    try {
+      await fetch('/api/presentation/prebuild', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({force: false})
+      });
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⚡ Pre-Render All 5 Slides';
+    }
+  }
 
   function renderTurn(turn) {
     activeTurn = turn;
@@ -791,7 +1195,6 @@ CONTROL_HTML = """<!DOCTYPE html>
       document.getElementById('greekBox').value = turn.greek || '';
     }
 
-    // Timings
     const t = turn.timings || {};
     document.getElementById('mStt').textContent = t.stt_ms ? `${t.stt_ms} ms` : '—';
     document.getElementById('mRag').textContent = t.rag_ms ? `${t.rag_ms} ms` : '—';
@@ -800,161 +1203,172 @@ CONTROL_HTML = """<!DOCTYPE html>
     document.getElementById('mUnattended').textContent = t.total_unattended_ms ? `${(t.total_unattended_ms/1000).toFixed(2)} s` : '—';
     document.getElementById('mPostApprove').textContent = t.post_approval_start_ms ? `${t.post_approval_start_ms} ms` : '—';
 
-    // Sources
-    const sList = document.getElementById('sourcesList');
-    sList.innerHTML = '';
-    (turn.sources || []).forEach(s => {
-      const span = document.createElement('span');
-      span.className = 'source-chip';
-      span.textContent = s;
-      sList.appendChild(span);
-    });
+    const srcBox = document.getElementById('sourcesList');
+    if (turn.sources && turn.sources.length) {
+      srcBox.innerHTML = turn.sources.map(s => `<span class="source-chip">${s}</span>`).join('');
+    } else {
+      srcBox.innerHTML = '<span style="color:var(--muted);font-size:13px;">None</span>';
+    }
 
-    // Retrieved chunk details
-    const rBox = document.getElementById('retrievedChunksBox');
+    const chunksBox = document.getElementById('retrievedChunksBox');
     if (turn.retrieved_details && turn.retrieved_details.length) {
-      rBox.innerHTML = turn.retrieved_details.map(d =>
-        `<div style="margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #222d44;">
-          <b style="color:#e5c467;">[${d.match_type.toUpperCase()}] ${d.source_label}</b> — ${d.title}<br>
-          <span style="font-size:11px;color:#79c0ff;">Keys: ${(d.entity_keys || []).join(', ') || 'BM25 keyword'}</span>
+      chunksBox.innerHTML = turn.retrieved_details.map((c, idx) =>
+        `<div style="margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #222d44;">
+          <b style="color:var(--gold);">${idx+1}. ${c.source_label}</b> <span style="font-size:11px;">(${c.match_type})</span><br>
+          <span>${c.title}</span>
         </div>`
       ).join('');
     }
 
-    // Readiness badge & buttons
     const badge = document.getElementById('readinessBadge');
-    const canAct = ['synthesizing', 'ready', 'speaking', 'completed'].includes(turn.status);
-    document.getElementById('approveBtn').disabled = !canAct;
-    document.getElementById('editBtn').disabled = !canAct;
-    document.getElementById('regenBtn').disabled = !canAct;
-    document.getElementById('discardBtn').disabled = !canAct;
+    const approveBtn = document.getElementById('approveBtn');
+    const editBtn = document.getElementById('editBtn');
+    const regenBtn = document.getElementById('regenBtn');
+    const discardBtn = document.getElementById('discardBtn');
 
     if (turn.status === 'synthesizing') {
-      badge.className = 'badge badge-synth';
-      badge.textContent = `Synthesizing ${turn.synthesized_count}/${turn.total_sentences}...`;
+      if (turn.synthesized_count > 0) {
+        badge.className = 'badge badge-ready';
+        badge.textContent = `🟢 Ready (Sent ${turn.synthesized_count}/${turn.total_sentences} buffered)`;
+        approveBtn.disabled = false;
+      } else {
+        badge.className = 'badge badge-synth';
+        badge.textContent = `🟡 Synthesizing (0/${turn.total_sentences})...`;
+        approveBtn.disabled = false;
+      }
+      editBtn.disabled = false;
+      regenBtn.disabled = false;
+      discardBtn.disabled = false;
     } else if (turn.status === 'ready') {
       badge.className = 'badge badge-ready';
-      badge.textContent = `Ready (${turn.synthesized_count}/${turn.total_sentences} pre-synthesized)`;
+      badge.textContent = `🟢 Ready (${turn.total_sentences}/${turn.total_sentences} sentences buffered)`;
+      approveBtn.disabled = false;
+      editBtn.disabled = false;
+      regenBtn.disabled = false;
+      discardBtn.disabled = false;
     } else if (turn.status === 'speaking') {
       badge.className = 'badge badge-speaking';
-      badge.textContent = `Speaking (${turn.synthesized_count}/${turn.total_sentences})`;
+      badge.textContent = '🔊 Speaking on /avatar...';
+      approveBtn.disabled = true;
+      editBtn.disabled = true;
+      regenBtn.disabled = false;
+      discardBtn.disabled = false;
     } else {
       badge.className = 'badge badge-idle';
       badge.textContent = turn.status.toUpperCase();
+      approveBtn.disabled = turn.status !== 'completed';
+      editBtn.disabled = !turn.english;
+      regenBtn.disabled = !turn.transcript;
+      discardBtn.disabled = true;
     }
   }
 
-  function renderCanned(items) {
-    const c = document.getElementById('cannedContainer');
-    c.innerHTML = (items || []).map(item => `
+  function renderCanned(cannedList) {
+    const container = document.getElementById('cannedContainer');
+    container.innerHTML = (cannedList || []).map((c, idx) => `
       <div class="canned-item">
         <div>
-          <div class="c-title">${item.title}</div>
-          <div class="c-sub">${item.tts_voice} · ${(item.sources || []).join(', ')}</div>
+          <div class="c-title">[${idx+1}] ${c.title}</div>
+          <div class="c-sub">${c.question}</div>
         </div>
-        <button onclick="playCanned('${item.id}')" style="background:#1f3225;border-color:#2ea043;color:#7ee787;">▶ Speak</button>
+        <button onclick="playCanned('${c.id}')" style="background:#26334d;border-color:var(--gold);color:var(--gold);white-space:nowrap;">▶ Play [${idx+1}]</button>
       </div>
     `).join('');
   }
 
   async function toggleCapture() {
-    const btn = document.getElementById('captureBtn');
+    const useOp = document.getElementById('useOpMicCheck').checked;
     if (!isCapturing) {
-      const useOp = document.getElementById('useOpMicCheck').checked;
-      const r = await fetch(`/api/capture/start?use_operator_mic=${useOp}`, { method: 'POST' });
-      const data = await r.json();
-      isCapturing = true;
-      btn.className = 'btn-capture recording';
-      btn.textContent = '⏹️ Stop & Transcribe';
-      document.getElementById('micDeviceLabel').textContent = data.device || 'Capturing...';
+      await fetch(`/api/capture/start?use_operator_mic=${useOp}`, {method: 'POST'});
     } else {
-      isCapturing = false;
-      btn.className = 'btn-capture';
-      btn.textContent = '🎙️ Start Capture';
-      await fetch('/api/capture/stop', { method: 'POST' });
+      await fetch('/api/capture/stop', {method: 'POST'});
     }
   }
 
   async function submitManualQuestion() {
-    const inp = document.getElementById('manualQuestionInput');
-    const q = inp.value.trim();
+    const q = document.getElementById('manualQuestionInput').value.trim();
     if (!q) return;
-    await fetch('/api/ask', {
+    const res = await fetch('/api/ask', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: q }),
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({question: q})
     });
+    renderTurn(await res.json());
   }
 
   async function approveTurn() {
-    await fetch('/api/turn/approve', { method: 'POST' });
+    const res = await fetch('/api/turn/approve', {method: 'POST'});
+    renderTurn(await res.json());
   }
 
   async function regenerateTurn() {
-    await fetch('/api/turn/regenerate', { method: 'POST' });
+    const res = await fetch('/api/turn/regenerate', {method: 'POST'});
+    renderTurn(await res.json());
   }
 
   async function discardTurn() {
-    await fetch('/api/turn/discard', { method: 'POST' });
+    await fetch('/api/turn/discard', {method: 'POST'});
   }
 
   async function saveEdits() {
-    const eng = document.getElementById('englishBox').value;
-    const grk = document.getElementById('greekBox').value;
-    await fetch('/api/turn/edit', {
+    const english = document.getElementById('englishBox').value;
+    const greek = document.getElementById('greekBox').value;
+    const res = await fetch('/api/turn/edit', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ english: eng, greek: grk }),
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({english, greek})
     });
+    renderTurn(await res.json());
   }
 
-  async function playCanned(cannedId) {
-    await fetch('/api/canned', {
+  async function playCanned(id) {
+    const res = await fetch('/api/canned', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ canned_id: cannedId }),
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({canned_id: id})
     });
+    renderTurn(await res.json());
   }
 
   async function updateTTSPreset() {
     const val = document.getElementById('ttsPresetSelect').value;
-    const [backend, voice] = val.split('|');
+    const [tts_backend, tts_voice] = val.split('|');
     await fetch('/api/config', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tts_backend: backend, tts_voice: voice }),
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({tts_backend, tts_voice})
     });
   }
 
   async function switchScene(scene) {
-    document.getElementById('sceneDavidBtn').classList.toggle('active-scene', scene === 'David');
-    document.getElementById('sceneEuclidBtn').classList.toggle('active-scene', scene === 'Euclid');
     await fetch('/api/scene', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ scene }),
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({scene})
     });
+    document.getElementById('sceneDavidBtn').classList.toggle('active-scene', scene === 'David');
+    document.getElementById('sceneEuclidBtn').classList.toggle('active-scene', scene === 'Euclid');
   }
 
-  // Keyboard shortcuts when not typing in an input/textarea
-  window.addEventListener('keydown', (e) => {
+  document.addEventListener('keydown', (e) => {
     const tag = (document.activeElement && document.activeElement.tagName) || '';
-    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) {
-      if (e.key === 'Escape') document.activeElement.blur();
-      return;
-    }
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
     if (e.code === 'Space') {
       e.preventDefault();
       toggleCapture();
     } else if (e.key === 'a' || e.key === 'A') {
       e.preventDefault();
-      approveTurn();
+      if (!document.getElementById('approveBtn').disabled) approveTurn();
     } else if (e.key === 'r' || e.key === 'R') {
       e.preventDefault();
-      regenerateTurn();
-    } else if (e.key === 'Escape' || e.key === 'd' || e.key === 'D') {
+      if (!document.getElementById('regenBtn').disabled) regenerateTurn();
+    } else if (e.key === 'Escape') {
       e.preventDefault();
-      discardTurn();
+      if (!document.getElementById('discardBtn').disabled) discardTurn();
+    } else if (e.key >= '1' && e.key <= '5') {
+      const buttons = document.querySelectorAll('#cannedContainer button');
+      const idx = parseInt(e.key, 10) - 1;
+      if (buttons[idx]) buttons[idx].click();
     }
   });
 
@@ -965,11 +1379,21 @@ CONTROL_HTML = """<!DOCTYPE html>
       const msg = JSON.parse(event.data);
       if (msg.type === 'init') {
         renderCanned(msg.canned || []);
+        if (msg.presentation) renderPresentation(msg.presentation);
         if (msg.turn) renderTurn(msg.turn);
+      } else if (msg.type === 'presentation_state') {
+        renderPresentation(msg.presentation);
       } else if (msg.type === 'turn_update') {
         renderTurn(msg.turn);
+      } else if (msg.type === 'capture_state') {
+        isCapturing = msg.capturing;
+        const btn = document.getElementById('captureBtn');
+        btn.classList.toggle('recording', isCapturing);
+        btn.textContent = isCapturing ? '⏹ Stop & Transcribe' : '🎙️ Start Capture';
+        document.getElementById('micDeviceLabel').textContent = isCapturing ? `Recording (${msg.device})` : 'Idle';
+        if (!isCapturing) document.getElementById('micMeter').style.width = '0%';
       } else if (msg.type === 'mic_level') {
-        const pct = Math.min(100, Math.round((msg.rms || 0) * 350));
+        const pct = Math.min(100, Math.round((msg.rms || 0) * 450));
         document.getElementById('micMeter').style.width = `${pct}%`;
       }
     };
