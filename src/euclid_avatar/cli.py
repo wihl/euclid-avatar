@@ -15,6 +15,7 @@ from .devices import format_devices_report
 from .index import build_or_update_index
 from .pipeline import EuclidPipeline
 from .server import create_app
+from .video import DEFAULT_TARGET_DURATION_S, render_presentation_videos
 
 MAX_PORT_PROBE_ATTEMPTS = 20
 
@@ -87,6 +88,35 @@ def main(argv: list[str] | None = None) -> int:
         "--play",
         action="store_true",
         help="Play the presentation out loud after building",
+    )
+
+    # 3b. render-video
+    vid_p = sub.add_parser(
+        "render-video",
+        help="Render the full 5-minute 16:9 (1920x1080) MP4 presentation video for Google Slides",
+    )
+    vid_p.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("output/videos"),
+        help="Output directory for generated MP4 files (default: output/videos)",
+    )
+    vid_p.add_argument(
+        "--voice",
+        type=str,
+        default=None,
+        help="Override TTS voice identifier (default: en-AU-Chirp3-HD-Charon)",
+    )
+    vid_p.add_argument(
+        "--target-duration",
+        type=float,
+        default=DEFAULT_TARGET_DURATION_S,
+        help="Target duration in seconds (default: 300.0 for 5 minutes; <= 0 for unabridged)",
+    )
+    vid_p.add_argument(
+        "--also-unabridged",
+        action="store_true",
+        help="Also render the 1.0x unabridged presentation MP4",
     )
 
     # 4. dry-run
@@ -197,6 +227,49 @@ def main(argv: list[str] | None = None) -> int:
                 voice=args.voice,
                 play_audio=True,
                 block=True,
+            )
+        return 0
+
+    if cmd == "render-video":
+        voice = args.voice or cfg.active_tts_voice()
+        target_dur = (
+            args.target_duration
+            if args.target_duration and args.target_duration > 0
+            else None
+        )
+        out_dir = Path(args.output_dir).expanduser().resolve()
+        summary = render_presentation_videos(
+            cfg.project_root / "presentation_ii13.yaml",
+            cfg.cache_dir / "presentation_ii13",
+            out_dir,
+            voice=voice,
+            target_duration_s=target_dur,
+            render_per_slide=True,
+        )
+        print("\n=== II.13 16:9 Presentation Video Render Summary ===")
+        print(
+            f"Full Video:           {summary['full_video']['path']} "
+            f"({summary['full_video']['duration_s']} s / {summary['full_video']['duration_min']} min, "
+            f"{summary['full_video']['size_mb']} MB, {summary['full_video']['resolution']})"
+        )
+        for sv in summary.get("slide_videos", []):
+            print(
+                f"  Slide {sv['slide_number']} Video:      {sv['path']} "
+                f"({sv['duration_s']} s, {sv['size_mb']} MB)"
+            )
+        if args.also_unabridged and target_dur is not None:
+            unab = render_presentation_videos(
+                cfg.project_root / "presentation_ii13.yaml",
+                cfg.cache_dir / "presentation_ii13",
+                out_dir,
+                voice=voice,
+                target_duration_s=None,
+                render_per_slide=False,
+            )
+            print(
+                f"Unabridged Video:     {unab['full_video']['path']} "
+                f"({unab['full_video']['duration_s']} s / {unab['full_video']['duration_min']} min, "
+                f"{unab['full_video']['size_mb']} MB)"
             )
         return 0
 
