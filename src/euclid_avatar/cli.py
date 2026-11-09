@@ -15,6 +15,7 @@ from .devices import format_devices_report
 from .index import build_or_update_index
 from .pipeline import EuclidPipeline
 from .server import create_app
+from .video import render_presentation_videos
 
 MAX_PORT_PROBE_ATTEMPTS = 20
 
@@ -87,6 +88,24 @@ def main(argv: list[str] | None = None) -> int:
         "--play",
         action="store_true",
         help="Play the presentation out loud after building",
+    )
+
+    # 3b. render-video
+    vid_p = sub.add_parser(
+        "render-video",
+        help="Render the full 16:9 (1920x1080) MP4 presentation video for Google Slides",
+    )
+    vid_p.add_argument(
+        "--output-dir",
+        type=Path,
+        default=Path("output/videos"),
+        help="Output directory for generated MP4 file (default: output/videos)",
+    )
+    vid_p.add_argument(
+        "--voice",
+        type=str,
+        default=None,
+        help="Override TTS voice identifier (default: en-AU-Chirp3-HD-Charon)",
     )
 
     # 4. dry-run
@@ -198,6 +217,25 @@ def main(argv: list[str] | None = None) -> int:
                 play_audio=True,
                 block=True,
             )
+        return 0
+
+    if cmd == "render-video":
+        voice = args.voice or cfg.active_tts_voice()
+        out_dir = Path(args.output_dir).expanduser().resolve()
+        summary = render_presentation_videos(
+            cfg.project_root / "presentation_ii13.yaml",
+            cfg.cache_dir / "presentation_ii13",
+            out_dir,
+            voice=voice,
+            target_duration_s=None,
+            render_per_slide=False,
+        )
+        print("\n=== II.13 16:9 Presentation Video Render Summary ===")
+        print(
+            f"Full Video:           {summary['full_video']['path']} "
+            f"({summary['full_video']['duration_s']} s / {summary['full_video']['duration_min']} min, "
+            f"{summary['full_video']['size_mb']} MB, {summary['full_video']['resolution']})"
+        )
         return 0
 
     if cmd == "dry-run":

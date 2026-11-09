@@ -188,7 +188,16 @@ Synthesizes all 5 slides / 13 segments of `presentation_ii13.yaml` in Male Austr
 .venv/bin/python -m euclid_avatar prebuild-presentation --voice en-AU-Chirp3-HD-Charon
 ```
 
-### 3. Run or Preview the 5-Minute II.13 Presentation from the CLI
+### 3. Render the Standalone 16:9 (`1920x1080`) MP4 Video for Google Slides
+Renders the full presentation (`euclid_ii13_presentation.mp4`) at full-bleed `1920x1080` (`16:9`, 30 fps H.264 `yuv420p` + 48 kHz stereo AAC with `-movflags +faststart`) using the exact cached segment speeds and spacing (`0.32 s` inter-segment pause, `0.65 s` inter-slide pause) for direct embedding in Google Slides:
+```bash
+/opt/homebrew/bin/python3 -m euclid_avatar.video \
+  --yaml presentation_ii13.yaml \
+  --cache-dir .cache/presentation_ii13 \
+  --output-dir output/videos
+```
+
+### 4. Run or Preview the 5-Minute II.13 Presentation from the CLI
 ```bash
 .venv/bin/python -m euclid_avatar present --slide 1
 ```

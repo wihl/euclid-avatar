@@ -9,9 +9,10 @@ __pycache__/
 *$py.class
 .pytest_cache/
 
-# Generated audio logs (keep turns.jsonl if desired or ignore WAVs)
+# Generated audio & video outputs
 logs/audio/*.wav
 logs/benchmark_inputs/*.wav
+output/
 
 # macOS
 .DS_Store
