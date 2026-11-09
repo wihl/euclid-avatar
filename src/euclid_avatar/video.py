@@ -593,10 +593,10 @@ def render_presentation_videos(
     output_dir: Path,
     *,
     voice: str = "en-AU-Chirp3-HD-Charon",
-    target_duration_s: float | None = DEFAULT_TARGET_DURATION_S,
-    render_per_slide: bool = True,
+    target_duration_s: float | None = None,
+    render_per_slide: bool = False,
 ) -> dict[str, Any]:
-    """Render the full 5-minute 16:9 presentation MP4 (and optional per-slide MP4s)."""
+    """Render the full 16:9 (1920x1080) presentation MP4 at original speed and spacing."""
     t0 = time.perf_counter()
     raw_yaml = yaml.safe_load(presentation_yaml_path.read_text(encoding="utf-8")) or {}
     pres_spec = raw_yaml.get("presentation", {})
@@ -864,14 +864,14 @@ def render_presentation_videos(
         # Write combined WAV and encode full MP4
         output_dir.mkdir(parents=True, exist_ok=True)
         suffix = (
-            "5min"
+            f"_{int(target_duration_s)}s"
             if target_duration_s is not None
-            else "unabridged"
+            else ""
         )
-        full_wav_path = work_dir / f"full_{suffix}.wav"
+        full_wav_path = work_dir / f"full{suffix}.wav"
         _write_wav_pcm16(full_wav_path, full_pcm, AUDIO_INPUT_SAMPLE_RATE_HZ)
 
-        full_mp4_path = output_dir / f"euclid_ii13_presentation_{suffix}.mp4"
+        full_mp4_path = output_dir / f"euclid_ii13_presentation{suffix}.mp4"
         full_video_meta = _encode_mp4_from_intervals(
             all_intervals, full_wav_path, full_mp4_path, work_dir
         )
@@ -881,11 +881,11 @@ def render_presentation_videos(
             for s_raw in slides_raw:
                 s_num = int(s_raw["slide_number"])
                 s_id = str(s_raw["id"])
-                s_wav = work_dir / f"{s_id}_{suffix}.wav"
+                s_wav = work_dir / f"{s_id}{suffix}.wav"
                 _write_wav_pcm16(
                     s_wav, per_slide_pcm[s_num], AUDIO_INPUT_SAMPLE_RATE_HZ
                 )
-                s_mp4 = output_dir / f"{s_id}_{suffix}.mp4"
+                s_mp4 = output_dir / f"{s_id}{suffix}.mp4"
                 meta = _encode_mp4_from_intervals(
                     per_slide_intervals[s_num], s_wav, s_mp4, work_dir
                 )
@@ -895,7 +895,7 @@ def render_presentation_videos(
 
         elapsed_s = round(time.perf_counter() - t0, 2)
         return {
-            "mode": suffix,
+            "mode": "original_pacing" if target_duration_s is None else f"{target_duration_s}s",
             "voice": voice,
             "unique_visual_states": frame_counter,
             "total_intervals": len(all_intervals),
@@ -907,11 +907,11 @@ def render_presentation_videos(
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Standalone CLI entry point for rendering the 16:9 presentation videos."""
+    """Standalone CLI entry point for rendering the 16:9 presentation video."""
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Render the 1920x1080 (16:9) Elements II.13 presentation MP4 videos."
+        description="Render the 1920x1080 (16:9) Elements II.13 presentation MP4 video."
     )
     parser.add_argument(
         "--yaml",
@@ -929,7 +929,7 @@ def main(argv: list[str] | None = None) -> int:
         "--output-dir",
         type=Path,
         default=Path("output/videos"),
-        help="Output directory for generated MP4 videos",
+        help="Output directory for generated MP4 video",
     )
     parser.add_argument(
         "--voice",
@@ -937,41 +937,17 @@ def main(argv: list[str] | None = None) -> int:
         default="en-AU-Chirp3-HD-Charon",
         help="Voice identifier used in cached filenames",
     )
-    parser.add_argument(
-        "--target-duration",
-        type=float,
-        default=DEFAULT_TARGET_DURATION_S,
-        help="Target duration in seconds (default 300.0 for 5 minutes; <= 0 for unabridged)",
-    )
-    parser.add_argument(
-        "--also-unabridged",
-        action="store_true",
-        help="Also render the 1.0x unabridged presentation video",
-    )
     args = parser.parse_args(argv)
 
-    target_dur = args.target_duration if args.target_duration > 0 else None
     summary = render_presentation_videos(
         args.yaml.resolve(),
         args.cache_dir.resolve(),
         args.output_dir.resolve(),
         voice=args.voice,
-        target_duration_s=target_dur,
-        render_per_slide=True,
+        target_duration_s=None,
+        render_per_slide=False,
     )
     print(json.dumps(summary, indent=2, ensure_ascii=False))
-
-    if args.also_unabridged and target_dur is not None:
-        unab_summary = render_presentation_videos(
-            args.yaml.resolve(),
-            args.cache_dir.resolve(),
-            args.output_dir.resolve(),
-            voice=args.voice,
-            target_duration_s=None,
-            render_per_slide=False,
-        )
-        print(json.dumps(unab_summary, indent=2, ensure_ascii=False))
-
     return 0
 
 
