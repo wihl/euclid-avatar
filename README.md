@@ -18,6 +18,32 @@ In a live class session on Zoom:
 
 ---
 
+## Quick Start · *Elements* III.36 Interactive 3D Presentation (`iii36_world`)
+
+For Group 4's presentation on ***Elements* Book III, Proposition 36** (interactive Three.js 3D area proof, spoken segment/triangle highlighting, interactive `A` & `DF` manipulation checkpoints, and 2D-to-3D spherical breakdown; full guide in [`docs/III36_WORLD.md`](docs/III36_WORLD.md)):
+
+### Start the III.36 Server (`http://127.0.0.1:8791/`)
+
+```bash
+cd ~/Projects/agy/euclid-avatar
+PYTHONPATH=src /opt/homebrew/bin/python3 -m euclid_avatar.iii36_world serve --host 127.0.0.1 --port 8791
+```
+
+Open **http://127.0.0.1:8791/** in Chrome (when sharing in Zoom, check **"Share sound"** in the Zoom screen-share dialog).
+
+### Stop the III.36 Server
+
+* **Foreground terminal:** Press **`Ctrl+C`**.
+* **From any terminal (or if started in the background):**
+
+```bash
+lsof -ti tcp:8791 | xargs kill
+```
+
+*(See [`docs/III36_WORLD.md`](docs/III36_WORLD.md) for background `nohup` launch, pre-class cache warm-up, interactive checkpoint controls, and offline `1080p` MP4 backup rendering.)*
+
+---
+
 ## 1. Prerequisites & Installation
 
 ### System Dependencies (macOS Apple Silicon `arm64`)
