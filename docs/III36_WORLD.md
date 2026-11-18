@@ -2,21 +2,100 @@
 
 Interactive Three.js 3D virtual world, scholarly Gemini 3.8 TTS narration (`Sadaltager`), acoustic highlight cue alignment, and deterministic `1920x1080` MP4 renderer (`5:53`, under the 7-minute cap) for David Wihl's MATH E-139 Group 4 presentation on **Euclid's *Elements* Book III, Proposition 36** (`coursework/projects/2026-project-iii36/proof`).
 
-## Highlights
+---
 
-- **Real-Time Spoken Segment, Triangle, and Area Highlighting (`84` Acoustic Cues):**
-  - Aligns spoken geometric letter sequences (`DB`, `AD`, `DC`, `AC`, `FB`, `FC`, `FD`, `EF`, `EC`, `ED`, `EB`, `DG`) and triangles (`△FBD`, `△EFC`, `△EFD`, `△EBD`) to the WAV waveform's amplitude envelope and breath pauses, illuminating named segments, triangles, vertices, and area slabs in bright gold as they are spoken.
-- **Interactive Pause-and-Manipulate Checkpoints:**
-  1. **Slide 1 (`~0:49` — Drag Point `A` Along Circumference Toward `B`):** Automatically pauses playback (and pauses immediately whenever `A` or the top-center slider is grabbed) so you can drag `A` directly along the circle circumference toward `B` while `C` and the blue `AD · DC` rectangle reshape live at constant area `16.00`, then click **`▶ Continue Video`** to resume.
-  2. **Slide 4 (`~3:57` — Sweep Line `DF` Across the Circle):** Automatically pauses playback (and pauses on grab) so you can drag midpoint `F` / line `DF` across all chords between tangents `DB` and `DG` (watching `EF` vanish at `E`) while `AD · DC = 16.00` remains invariant, then click **`▶ Continue Video`** to resume.
-- **Compact Diagram Framing & Zero Subtitles:** Scaled and framed comfortably above the bottom navigation bar (`WORLD_SCALE_2D = 0.305`) with zero subtitles and zero background distractions.
-- **Why III.36 Fails in 3D Spherical Geometry:** Continuous 2D-Plane → 3D-Sphere transition (`tau` in `[0, 1]`) showing `∠EBD = 90.0°` (`III.18`) holding while a 4-right-angle geodesic "square" on `DB` splits wide open at its 4th corner and `AD × DC = 1.22` diverges from `DB² = 1.36`.
+## Monday Evening Presentation Runbook (Start & Stop Server)
 
-## Commands (`arm64` Homebrew Python)
+### 1. Pre-Class Warm-Up (Run Once Before Class)
+
+The first time `serve` runs in a fresh checkout, it caches `three.module.js` and synthesizes the 14 voiceover WAV segments into `.cache/iii36_world/` (~30 seconds). Once cached, subsequent startups take **`< 0.1 s`** and require **no internet or API access** during class.
+
+From the repository root (`~/Projects/agy/euclid-avatar` once merged and updated):
 
 ```bash
-PYTHONPATH=src /opt/homebrew/bin/python3 -m unittest discover -s tests -v
+cd ~/Projects/agy/euclid-avatar
 PYTHONPATH=src /opt/homebrew/bin/python3 -m euclid_avatar.iii36_world check
-PYTHONPATH=src /opt/homebrew/bin/python3 -m euclid_avatar.iii36_world serve --port 8791
+```
+
+---
+
+### 2. Starting the Server
+
+#### Option A · Foreground Terminal (Recommended for Live Class)
+
+Keep a dedicated Terminal tab open so you can see the server status and stop it instantly with `Ctrl+C`:
+
+```bash
+cd ~/Projects/agy/euclid-avatar
+PYTHONPATH=src /opt/homebrew/bin/python3 -m euclid_avatar.iii36_world serve --host 127.0.0.1 --port 8791
+```
+
+Then open **http://127.0.0.1:8791/** in Chrome (or Safari).
+
+*(If port `8791` is already in use, either stop the existing process below or pass `--port 8792`.)*
+
+#### Option B · Background Daemon
+
+If you prefer running the server in the background without keeping a terminal occupied:
+
+```bash
+cd ~/Projects/agy/euclid-avatar
+nohup env PYTHONPATH=src /opt/homebrew/bin/python3 -m euclid_avatar.iii36_world serve --host 127.0.0.1 --port 8791 >/tmp/iii36_world.log 2>&1 &
+```
+
+Verify it is listening:
+
+```bash
+lsof -i tcp:8791
+```
+
+---
+
+### 3. Stopping the Server
+
+* **If running in a foreground terminal:** Press **`Ctrl+C`** in that terminal window.
+* **If running in the background (or to free port `8791` from any terminal):**
+
+```bash
+lsof -ti tcp:8791 | xargs kill
+```
+
+*(Confirm it stopped — the following command should print nothing:)*
+
+```bash
+lsof -i tcp:8791
+```
+
+---
+
+### 4. Presenting Live on Zoom (Quick Checklist)
+
+1. **Share Browser Audio in Zoom:** When clicking **Share Screen** in Zoom, select your Chrome window showing `http://127.0.0.1:8791/` and check **"Share sound"** at the bottom-left of Zoom's share dialog so the class hears the synchronized narration directly.
+2. **Start Playback (`5:53` total):** Click **`▶ Play Presentation`** in the bottom-left bar.
+3. **Interactive Checkpoint 1 (`~0:49`, Slide 1):**
+   * Playback automatically pauses with a cyan ring (`⇄ Drag A`) on **Point `A`**.
+   * Drag **Point `A`** directly along the circle's circumference toward **`B`** (or slide the top-center slider) to show `C` moving and the blue `AD · DC` rectangle reshaping live while staying locked at area `16.00`.
+   * Click **`▶ Continue Video`** (top-center pill or bottom-left button) to resume.
+4. **Interactive Checkpoint 2 (`~3:57`, Slide 4):**
+   * Playback automatically pauses with a cyan ring (`↕ Drag DF`) on **Point `F`**.
+   * Drag **`F`** (or sweep line `DF`) across the chords between tangents `DB` and `DG` — including right through the centre `E` where `EF = 0` — showing `AD · DC = 16.00` stays invariant.
+   * Click **`▶ Continue Video`** to resume into Slide 5 (the 2D Plane → 3D Sphere breakdown).
+5. **Ad-Hoc Manipulation Anytime:** Grabbing `A` (on Slide 1), `F` (on Slide 4), or the **`2D ↔ 3D Sphere`** slider at any moment automatically pauses playback; click **`▶ Continue Video`** when ready, or **`🎥 Guided Cam`** if you orbited the 3D camera manually.
+
+---
+
+## Optional Offline Video Build (`1920x1080` MP4 Backup)
+
+To render a standalone `1920x1080` MP4 (`output/iii36_world/iii36_virtual_world.mp4`) as an offline backup:
+
+```bash
+cd ~/Projects/agy/euclid-avatar
 PYTHONPATH=src /opt/homebrew/bin/python3 -m euclid_avatar.iii36_world build --fps 24
+```
+
+## Running Unit & Geometry Tests
+
+```bash
+cd ~/Projects/agy/euclid-avatar
+PYTHONPATH=src /opt/homebrew/bin/python3 -m unittest discover -s tests -v
 ```
