@@ -77,7 +77,10 @@ def create_world_http_server(
                 self.end_headers()
                 with file_path.open("rb") as fh:
                     fh.seek(start)
-                    self.wfile.write(fh.read(length))
+                    try:
+                        self.wfile.write(fh.read(length))
+                    except (BrokenPipeError, ConnectionResetError):
+                        pass
                 return
 
             self.send_response(HTTPStatus.OK)
@@ -85,7 +88,10 @@ def create_world_http_server(
             self.send_header("Accept-Ranges", "bytes")
             self.send_header("Content-Length", str(size))
             self.end_headers()
-            self.wfile.write(file_path.read_bytes())
+            try:
+                self.wfile.write(file_path.read_bytes())
+            except (BrokenPipeError, ConnectionResetError):
+                pass
 
         def do_GET(self) -> None:  # noqa: N802
             parsed_path = urllib.parse.urlparse(self.path).path

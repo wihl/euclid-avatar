@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import array
 import json
+import math
 from pathlib import Path
 import unittest
 
-from euclid_avatar.iii36_world.assets import MAX_PRESENTATION_DURATION_S
+from euclid_avatar.iii36_world.assets import (
+    AUDIO_SAMPLE_RATE_HZ,
+    MAX_PRESENTATION_DURATION_S,
+    extract_segment_highlight_cues,
+)
 from euclid_avatar.iii36_world.geometry import (
     EXPECTED_AREA,
     EXPECTED_DB,
@@ -22,7 +28,7 @@ from euclid_avatar.iii36_world.world_html import render_world_html
 
 
 class TestIII36World(unittest.TestCase):
-    """Verify mathematical accuracy, no-subtitle UI rule, and <7-min duration ceiling."""
+    """Verify mathematical accuracy, highlight cues, interactive controls, and UI rules."""
 
     def test_plane_cases_and_fan_invariance(self) -> None:
         plane = compute_plane_model()
@@ -53,15 +59,47 @@ class TestIII36World(unittest.TestCase):
             evaluate_spherical_state(1.0)["square_corner_gap_unit"], 0.5
         )
 
-    def test_no_subtitles_and_slide_structure(self) -> None:
+    def test_highlight_cue_extractor_detects_segments_triangles_and_squares(self) -> None:
+        # Synthetic 6-second voiced waveform for unit testing cue extraction
+        n_samples = 6 * AUDIO_SAMPLE_RATE_HZ
+        synth = array.array(
+            "h",
+            (int(4000 * math.sin(2 * math.pi * 220 * i / AUDIO_SAMPLE_RATE_HZ)) for i in range(n_samples)),
+        )
+        text = (
+            "Drop perpendicular E F to A C; in right triangle E F C, "
+            "the square on D B equals A D by D C."
+        )
+        cues = extract_segment_highlight_cues(text, synth, AUDIO_SAMPLE_RATE_HZ, 10.0)
+        all_segs = {s for c in cues for s in c["segments"]}
+        all_tris = {t for c in cues for t in c["triangles"]}
+        all_slabs = {sl for c in cues for sl in c["slabs"]}
+        self.assertIn("EF", all_segs)
+        self.assertIn("AC", all_segs)
+        self.assertIn("DB", all_segs)
+        self.assertIn("AD", all_segs)
+        self.assertIn("DC", all_segs)
+        self.assertIn("EFC", all_tris)
+        self.assertIn("sqDB", all_slabs)
+
+    def test_no_subtitles_and_interactive_checkpoints_wired(self) -> None:
         spec = build_world_spec()
         self.assertEqual(len(spec["slides"]), 5)
-        html = render_world_html(spec)
-        # User requirement: subtitles completely removed
-        self.assertNotIn("subtitle-banner", html)
-        self.assertIn("window.setVirtualWorldTime", html)
+        interactive_modes = [
+            seg.get("interactive_mode")
+            for sl in spec["slides"]
+            for seg in sl["segments"]
+            if seg.get("interactive_mode")
+        ]
+        self.assertEqual(interactive_modes, ["drag_point_a", "sweep_line_df"])
 
-    def test_cached_manifest_under_seven_minutes_if_present(self) -> None:
+        html = render_world_html(spec)
+        self.assertNotIn("subtitle-banner", html)
+        self.assertIn("pauseForUserManipulation", html)
+        self.assertIn("applyRaycastDrag", html)
+        self.assertIn("interactive-banner", html)
+
+    def test_cached_manifest_under_seven_minutes_and_has_cues(self) -> None:
         manifest = (
             Path(__file__).resolve().parents[1]
             / ".cache"
@@ -72,6 +110,7 @@ class TestIII36World(unittest.TestCase):
             data = json.loads(manifest.read_text(encoding="utf-8"))
             dur = float(data["timeline"]["total_duration_s"])
             self.assertLessEqual(dur, MAX_PRESENTATION_DURATION_S)
+            self.assertGreater(len(data["timeline"].get("highlight_cues", [])), 50)
 
 
 if __name__ == "__main__":
