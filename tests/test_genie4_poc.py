@@ -25,6 +25,10 @@ from euclid_avatar.genie4_poc import (
     GENIE_FPS,
     MAX_SESSION_DURATION_S,
 )
+from euclid_avatar.genie4_poc.diagram import (
+    build_diagram_spec_for_plan,
+    build_iii36_diagram_spec,
+)
 from euclid_avatar.genie4_poc.genie_client import (
     build_steering_schedule,
     record_genie4_session,
@@ -395,6 +399,8 @@ class TestGenie4Poc(unittest.TestCase):
                 base = f"http://127.0.0.1:{port}"
                 html = urllib.request.urlopen(f"{base}/").read().decode("utf-8")
                 self.assertIn("III.36", html)
+                self.assertIn('id="exact-diagram"', html)
+                self.assertIn("renderExactDiagram", html)
                 self.assertNotIn("SECRET_NEVER_EXPOSED_TO_BROWSER", html)
 
                 plan_json = json.loads(
@@ -402,6 +408,9 @@ class TestGenie4Poc(unittest.TestCase):
                 )
                 self.assertEqual(plan_json["proposition_id"], "III.36")
                 self.assertTrue(plan_json["has_seed_image"])
+                self.assertTrue(plan_json["diagram"]["has_exact_geometry"])
+                self.assertIn("step_2_case1", plan_json["diagram"]["scenes"])
+                self.assertIn("step_3_case2", plan_json["diagram"]["scenes"])
 
                 seed_resp = urllib.request.urlopen(f"{base}/assets/seed").read()
                 self.assertEqual(seed_resp, jpeg_bytes)
@@ -463,6 +472,43 @@ class TestGenie4Poc(unittest.TestCase):
         # Base64-encoded image plus typical prompt stays comfortably below 256 KiB SCTP limit
         b64_len = len(base64.b64encode(compressed))
         self.assertLess(b64_len + 8000, WEBRTC_SCTP_MAX_MESSAGE_BYTES)
+
+    def test_exact_iii36_diagram_spec_and_generic_plan_fallback(self) -> None:
+        spec = build_iii36_diagram_spec()
+        self.assertTrue(spec["has_exact_geometry"])
+        self.assertEqual(spec["proposition_id"], "III.36")
+        scenes = spec["scenes"]
+        for key in (
+            "step_0_enunciation",
+            "step_1_ekthesis",
+            "step_2_case1",
+            "step_3_case2",
+            "step_4_conclusion",
+        ):
+            self.assertIn(key, scenes)
+
+        # Case 1 uses Heiberg center Ζ and right angle ∠ΖΒΔ = 90°
+        c1 = scenes["step_2_case1"]
+        c1_pts = {p["id"] for p in c1["points"]}
+        self.assertEqual(c1_pts, {"Α", "Β", "Γ", "Δ", "Ζ"})
+        self.assertEqual(len(c1["right_angles"]), 1)
+        self.assertEqual(len(c1["ticks"]), 2)
+
+        # Case 2 uses Heiberg center Ε, perpendicular foot Ζ, and two right angles
+        c2 = scenes["step_3_case2"]
+        c2_pts = {p["id"] for p in c2["points"]}
+        self.assertEqual(c2_pts, {"Α", "Β", "Γ", "Δ", "Ε", "Ζ"})
+        self.assertEqual(len(c2["right_angles"]), 2)
+        self.assertEqual(len(c2["ticks"]), 4)
+        self.assertIn("16.00", c2["formula_numeric"])
+
+        # Non-III.36 propositions gracefully degrade without throwing
+        plan = build_curated_iii36_plan()
+        other_plan = plan.model_copy(update={"proposition_id": "II.13", "book": 2, "number": 13})
+        fallback = build_diagram_spec_for_plan(other_plan)
+        self.assertFalse(fallback["has_exact_geometry"])
+        self.assertIn("step_0_enunciation", fallback["scenes"])
+        self.assertIn("step_1_ekthesis", fallback["scenes"])
 
 
 if __name__ == "__main__":

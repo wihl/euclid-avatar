@@ -133,6 +133,35 @@ def build_steering_prompt(
     )
 
 
+def build_studio_steering_prompt(
+    step: SteeringStep,
+    *,
+    ambient_only_audio: bool = False,
+) -> str:
+    """Build a calm point-and-recite prompt for the hybrid Option A live studio.
+
+    In the hybrid studio, the exact geometric construction animates on the
+    synchronized deterministic canvas beside Genie 4. Instructing Genie 4 to
+    keep the existing sand-tray and single bronze divider/straightedge intact
+    prevents world-model hallucinations (extra rulers or chaotic grooves) while
+    Euclid gestures naturally and speaks the Heiberg Ancient Greek clause.
+    """
+    if ambient_only_audio:
+        return (
+            "Keep the camera steady and keep the existing diagram in the wooden "
+            "sand-tray unchanged with no new tools added. Euclid calmly points the "
+            "tip of his bronze divider toward the sand diagram as he explains "
+            f"{step.english_summary} No music."
+        )
+    return (
+        "Keep the camera steady and keep the existing diagram in the wooden "
+        "sand-tray unchanged with no extra rulers or tools added. Euclid calmly "
+        "gestures with his bronze divider over the sand-tray while speaking clearly "
+        "and deliberately in Ancient Greek (classical Erasmian pronunciation): "
+        f"\"{step.greek_text}\""
+    )
+
+
 def build_prompt_bundle(
     plan: PropositionPlan,
     *,
@@ -145,6 +174,7 @@ def build_prompt_bundle(
         "greek_letters": plan.greek_letters,
         "source_note": plan.source_note,
         "ambient_only_audio": ambient_only_audio,
+        "enunciation_greek": plan.enunciation_greek,
         "seed_image_prompt": build_seed_image_prompt(plan),
         "world_setup_prompt": build_world_setup_prompt(
             plan, ambient_only_audio=ambient_only_audio
@@ -157,6 +187,9 @@ def build_prompt_bundle(
                 "english_summary": step.english_summary,
                 "greek_text": step.greek_text,
                 "steering_prompt": build_steering_prompt(
+                    step, ambient_only_audio=ambient_only_audio
+                ),
+                "studio_steering_prompt": build_studio_steering_prompt(
                     step, ambient_only_audio=ambient_only_audio
                 ),
             }

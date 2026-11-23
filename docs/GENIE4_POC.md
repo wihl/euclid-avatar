@@ -72,13 +72,19 @@ PYTHONPATH=src .venv/bin/python -m euclid_avatar.genie4_poc run --prop II.13 --d
 PYTHONPATH=src .venv/bin/python -m euclid_avatar.genie4_poc plan --prop I.47
 ```
 
-### 4. Interactive Live Browser Studio (WebRTC on Port `8795`)
+### 4. Interactive Live Browser Studio (WebRTC + Exact Geometric Canvas on Port `8795`)
+
+Because `genie-4` is a neural pixel world model rather than a geometric constraint solver, freehand sand diagrams generated purely by Genie 4 can drift away from exact tangency, collinearity, or Greek vertex placement. The local studio implements a **hybrid Option A layout**:
+
+- **Left pane:** Live photorealistic Genie 4 WebRTC video & voice of Euclid in Alexandria (using calm point-and-recite steering prompts so Genie 4 keeps the courtyard and tools stable).
+- **Right pane:** A synchronized, mathematically exact **abax sand-tray construction canvas** (`diagram.py`, grounded in `iii36_world.geometry`'s exact 3-4-5 plane model with Heiberg Greek labels `Α, Β, Γ, Δ, Ε, Ζ`), animating the hinged bronze divider arc, unmarked straightedge strokes, right-angle marks, tick marks, and Greek equations in lockstep with every proof step.
+- Clicking any proof step works **offline before starting Genie 4** (for zero-cost rehearsal) and steers Genie 4 live once connected.
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m euclid_avatar.genie4_poc serve --prop III.36 --port 8795
 ```
 
-Open `http://127.0.0.1:8795/` in Chrome, click **Start Genie 4 World**, navigate with `W/A/S/D` + arrow keys, trigger any proof step in Ancient Greek with one click, and click **Stop & Complete** when finished.
+Open `http://127.0.0.1:8795/` in Chrome, preview any step or click **Start Genie 4 World**, navigate with `W/A/S/D` + arrow keys, advance synchronized proof steps in Ancient Greek with one click, and click **Stop & Complete** when finished.
 
 ## Unit Tests
 
