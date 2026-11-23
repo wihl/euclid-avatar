@@ -23,7 +23,11 @@ from . import (
     GENIE_API_VERSION,
     GENIE_MODEL,
 )
-from .media import sniff_image_mime_type
+from .media import (
+    WEBRTC_SCTP_MAX_MESSAGE_BYTES,
+    prepare_webrtc_seed_image,
+    sniff_image_mime_type,
+)
 from .prompts import build_prompt_bundle
 from .propositions import PropositionPlan
 
@@ -55,7 +59,32 @@ def create_genie4_http_server(
         else b""
     )
     seed_mime = sniff_image_mime_type(seed_bytes) if seed_bytes else ""
-    seed_b64 = base64.b64encode(seed_bytes).decode("ascii") if seed_bytes else ""
+    webrtc_seed_bytes, webrtc_seed_mime = (
+        prepare_webrtc_seed_image(seed_bytes) if seed_bytes else (b"", "")
+    )
+    seed_b64 = (
+        base64.b64encode(webrtc_seed_bytes).decode("ascii")
+        if webrtc_seed_bytes
+        else ""
+    )
+    if seed_b64:
+        est_setup_bytes = len(
+            json.dumps(
+                {
+                    "event_type": "world_setup",
+                    "world_prompt": {"text": bundle["world_setup_prompt"]},
+                    "reference_image": {
+                        "data": seed_b64,
+                        "mime_type": webrtc_seed_mime,
+                    },
+                }
+            ).encode("utf-8")
+        )
+        if est_setup_bytes >= WEBRTC_SCTP_MAX_MESSAGE_BYTES:
+            raise ValueError(
+                f"Prepared WebRTC world_setup payload ({est_setup_bytes} B) exceeds "
+                f"SCTP maxMessageSize ({WEBRTC_SCTP_MAX_MESSAGE_BYTES} B)."
+            )
 
     def _mint_session() -> dict[str, Any]:
         if client_override is not None:
@@ -82,7 +111,7 @@ def create_genie4_http_server(
             "api_version": GENIE_API_VERSION,
             "world_prompt": bundle["world_setup_prompt"],
             "seed_image_b64": seed_b64,
-            "seed_mime_type": seed_mime,
+            "seed_mime_type": webrtc_seed_mime,
         }
 
     class StudioHandler(BaseHTTPRequestHandler):
@@ -341,6 +370,7 @@ STUDIO_HTML_TEMPLATE = r"""<!DOCTYPE html>
         Move: <b>W/A/S/D</b> · Look: <b>Arrow Keys</b> · Billing: ~$0.10/sec while live
       </span>
     </div>
+    <div id="error-banner" style="display:none;background:#3a1717;border:1px solid #d9534f;color:#ffd4d2;border-radius:10px;padding:10px 14px;font-size:13px;"></div>
   </div>
 
   <div class="sidebar">
@@ -379,7 +409,17 @@ STUDIO_HTML_TEMPLATE = r"""<!DOCTYPE html>
   const btnSendCustom = document.getElementById("btn-send-custom");
   const customInput = document.getElementById("custom-prompt");
   const logBox = document.getElementById("log-box");
+  const errorBanner = document.getElementById("error-banner");
   const stepsList = document.getElementById("steps-list");
+
+  function showError(msg) {
+    errorBanner.textContent = msg;
+    errorBanner.style.display = "block";
+  }
+  function clearError() {
+    errorBanner.textContent = "";
+    errorBanner.style.display = "none";
+  }
 
   let activeSession = null;
   let timerHandle = null;
@@ -439,6 +479,7 @@ STUDIO_HTML_TEMPLATE = r"""<!DOCTYPE html>
   }
 
   btnStart.addEventListener("click", async () => {
+    clearError();
     btnStart.disabled = true;
     statusPill.textContent = "Minting ephemeral token...";
     log("Requesting ephemeral Genie 4 session token from local backend...");
@@ -462,7 +503,7 @@ STUDIO_HTML_TEMPLATE = r"""<!DOCTYPE html>
       if (data.seed_image_b64) {
         setupPayload.reference_image = {
           data: data.seed_image_b64,
-          mime_type: data.seed_mime_type || "image/png",
+          mime_type: data.seed_mime_type || "image/jpeg",
         };
       }
       await session.send(setupPayload);
@@ -477,7 +518,12 @@ STUDIO_HTML_TEMPLATE = r"""<!DOCTYPE html>
         statusPill.textContent = `LIVE · ${secs}s · ~$${est}`;
       }, 1000);
     } catch (err) {
-      log(`Failed to start Genie 4 session: ${err.message || err}`);
+      const msg = err && err.message ? err.message : String(err);
+      log(`Failed to start Genie 4 session: ${msg}`);
+      showError(`Error: ${msg}`);
+      if (activeSession) {
+        await stopSession();
+      }
       statusPill.textContent = "Error";
       setLiveUI(false);
     }

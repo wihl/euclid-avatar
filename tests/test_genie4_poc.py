@@ -30,8 +30,11 @@ from euclid_avatar.genie4_poc.genie_client import (
     record_genie4_session,
 )
 from euclid_avatar.genie4_poc.media import (
+    WEBRTC_SCTP_MAX_MESSAGE_BYTES,
+    WEBRTC_SEED_MAX_RAW_BYTES,
     detect_video_frame_codec,
     mux_video_with_narration_mp4,
+    prepare_webrtc_seed_image,
     sniff_image_mime_type,
 )
 from euclid_avatar.genie4_poc.prompts import (
@@ -408,9 +411,58 @@ class TestGenie4Poc(unittest.TestCase):
                 self.assertEqual(sess_json["interaction_id"], "v1_fake_webrtc_id")
                 self.assertEqual(sess_json["auth_token"], "ephemeral_tok_12345")
                 self.assertNotIn("SECRET_NEVER_EXPOSED_TO_BROWSER", json.dumps(sess_json))
+                setup_bytes = len(
+                    json.dumps(
+                        {
+                            "event_type": "world_setup",
+                            "world_prompt": {"text": sess_json["world_prompt"]},
+                            "reference_image": {
+                                "data": sess_json["seed_image_b64"],
+                                "mime_type": sess_json["seed_mime_type"],
+                            },
+                        }
+                    ).encode("utf-8")
+                )
+                self.assertLess(setup_bytes, WEBRTC_SCTP_MAX_MESSAGE_BYTES)
             finally:
                 server.shutdown()
                 server.server_close()
+
+    def test_webrtc_seed_image_downscales_oversized_2k_image_under_sctp_limit(self) -> None:
+        ffmpeg_bin = shutil.which("ffmpeg")
+        if not ffmpeg_bin:
+            self.skipTest("ffmpeg not installed")
+        # Generate a noisy 2752x1536 PNG (> 500 KiB) mimicking Nano Banana 2K output
+        proc = subprocess.run(
+            [
+                ffmpeg_bin,
+                "-loglevel",
+                "error",
+                "-f",
+                "lavfi",
+                "-i",
+                "testsrc2=s=2752x1536:d=0.05,noise=alls=40:allf=t",
+                "-frames:v",
+                "1",
+                "-f",
+                "image2pipe",
+                "-vcodec",
+                "png",
+                "-",
+            ],
+            capture_output=True,
+            check=True,
+        )
+        big_png = proc.stdout
+        self.assertGreater(len(big_png), WEBRTC_SEED_MAX_RAW_BYTES)
+
+        compressed, mime = prepare_webrtc_seed_image(big_png)
+        self.assertEqual(mime, "image/jpeg")
+        self.assertGreater(len(compressed), 1000)
+        self.assertLessEqual(len(compressed), WEBRTC_SEED_MAX_RAW_BYTES)
+        # Base64-encoded image plus typical prompt stays comfortably below 256 KiB SCTP limit
+        b64_len = len(base64.b64encode(compressed))
+        self.assertLess(b64_len + 8000, WEBRTC_SCTP_MAX_MESSAGE_BYTES)
 
 
 if __name__ == "__main__":

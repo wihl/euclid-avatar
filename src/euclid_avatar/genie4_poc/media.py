@@ -45,6 +45,20 @@ AUDIO_OUT_RATE_HZ = 48000
 AUDIO_OUT_BITRATE = "192k"
 AMBIENT_MIX_VOLUME = 0.22
 
+# WebRTC SCTP data channels cap single messages at 262,144 bytes (256 KiB).
+# Base64 expands raw bytes by 4/3, so keeping raw JPEG <= 140 KiB leaves ~75 KiB
+# of headroom for the JSON envelope and world_prompt text.
+WEBRTC_SCTP_MAX_MESSAGE_BYTES = 262144
+WEBRTC_SEED_MAX_RAW_BYTES = 140000
+WEBRTC_TRANSCODE_LADDER: tuple[tuple[int, int, int], ...] = (
+    (1280, 720, 6),
+    (1280, 720, 10),
+    (1280, 720, 16),
+    (960, 540, 12),
+    (960, 540, 20),
+    (640, 360, 16),
+)
+
 ERASMIAN_TTS_STYLE = (
     "Calm, unhurried, authoritative older Greek scholar reciting Euclid in "
     "classical Erasmian Ancient Greek pronunciation with clear distinct vowels, "
@@ -124,6 +138,57 @@ def sniff_image_mime_type(image_bytes: bytes) -> str:
     """Detect image MIME type from file bytes."""
     _, _, mime = detect_video_frame_codec(image_bytes)
     return mime
+
+
+def prepare_webrtc_seed_image(
+    image_bytes: bytes,
+    *,
+    max_raw_bytes: int = WEBRTC_SEED_MAX_RAW_BYTES,
+) -> tuple[bytes, str]:
+    """Ensure a seed image fits comfortably inside WebRTC's 256 KiB SCTP limit.
+
+    Genie 4's native stream is 1280x720 (720p). Full 2K Nano Banana seed frames
+    (~3 MB) work over WebSockets but exceed Chrome's WebRTC data channel
+    ``maxMessageSize`` (262,144 bytes) when base64-encoded inside ``world_setup``.
+    Returns ``(compressed_bytes, mime_type)`` guaranteed ``<= max_raw_bytes``.
+    """
+    if not image_bytes:
+        return b"", ""
+    if len(image_bytes) <= max_raw_bytes:
+        return image_bytes, sniff_image_mime_type(image_bytes)
+
+    ffmpeg_bin = _require_ffmpeg()
+    _, ext, _ = detect_video_frame_codec(image_bytes)
+    with tempfile.TemporaryDirectory(prefix="genie4_webrtc_seed_") as tmp_str:
+        src_path = Path(tmp_str) / f"seed_in{ext}"
+        src_path.write_bytes(image_bytes)
+        last_bytes = b""
+        for width, height, qscale in WEBRTC_TRANSCODE_LADDER:
+            out_path = Path(tmp_str) / f"seed_{width}x{height}_q{qscale}.jpg"
+            cmd = [
+                ffmpeg_bin,
+                "-y",
+                "-loglevel",
+                "error",
+                "-i",
+                str(src_path),
+                "-vf",
+                f"scale={width}:{height}:force_original_aspect_ratio=decrease",
+                "-frames:v",
+                "1",
+                "-q:v",
+                str(qscale),
+                str(out_path),
+            ]
+            subprocess.run(cmd, check=True)
+            candidate = out_path.read_bytes()
+            last_bytes = candidate
+            if len(candidate) <= max_raw_bytes:
+                return candidate, "image/jpeg"
+        raise RuntimeError(
+            f"Unable to compress seed image below {max_raw_bytes} bytes "
+            f"(smallest result: {len(last_bytes)} bytes)."
+        )
 
 
 def generate_seed_image(
