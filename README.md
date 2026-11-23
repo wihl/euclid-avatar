@@ -44,6 +44,23 @@ lsof -ti tcp:8791 | xargs kill
 
 ---
 
+## Quick Start · Genie 4 Historically Accurate Alexandria POC (`genie4_poc`)
+
+End-to-end Python proof of concept driving Google DeepMind's **`genie-4`** interactive world model (seeded by **`gemini-nano-banana-2.1`**, planned for arbitrary *Elements* propositions from `mathe139` via **`gemini-3.5-flash-lite`**, with optional **`gemini-3.8-flash-tts`** / Erasmian IPA narration overlay; full guide in [`docs/GENIE4_POC.md`](docs/GENIE4_POC.md)):
+
+```bash
+# Offline prompt, Greek-text, and environment check (zero API cost)
+PYTHONPATH=src .venv/bin/python -m euclid_avatar.genie4_poc check
+
+# End-to-end automated POC capture for Elements III.36 (seed -> Genie 4 MP4)
+PYTHONPATH=src .venv/bin/python -m euclid_avatar.genie4_poc run --prop III.36 --duration-s 24
+
+# Interactive live WebRTC studio on port 8795 (does not conflict with port 8791)
+PYTHONPATH=src .venv/bin/python -m euclid_avatar.genie4_poc serve --prop III.36 --port 8795
+```
+
+---
+
 ## 1. Prerequisites & Installation
 
 ### System Dependencies (macOS Apple Silicon `arm64`)
